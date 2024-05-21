@@ -1,6 +1,9 @@
 import "./Login.css";
-import { useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import config from "../functions/config";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 function Login() {
   const passwordEle = useRef(null);
@@ -11,6 +14,50 @@ function Login() {
       passwordEle.current.type = "text";
     }
   }
+
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+  const [responseData, setResponseData] = useState(null);
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        `${config.base_url}/user_login/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      // setResponseData(response.data);
+      Cookies.set("access", response.data.access);
+
+      console.log('===RESPONSE===',response);
+      if (response.data.userID) {
+        navigate("/");
+      }
+
+    } catch (error) {
+      if(error.response.data.non_field_errors != ""){
+        alert(error.response.data.non_field_errors)
+      }
+      console.log('===ERROR===',error);
+    }
+  };
 
   return (
     <section className="vh-100 gradient-custom">
@@ -27,17 +74,15 @@ function Login() {
                     Login
                   </h2>
 
-                  <form
-                    action="{% url 'userLogin' %}"
-                    method="post"
-                    className="form"
-                  >
+                  <form action="#" method="POST" className="form" onSubmit={handleSubmit}>
                     <div className="form-outline mb-3">
                       <input
                         type="text"
                         id="typeUsernameX"
                         name="username"
                         className="form-control form-control-lg"
+                        onChange={handleInputChange}
+                        value={formData.username}
                         required
                       />
                       <label
@@ -54,6 +99,8 @@ function Login() {
                         name="password"
                         ref={passwordEle}
                         className="form-control form-control-lg"
+                        onChange={handleInputChange}
+                        value={formData.password}
                         required
                       />
                       <i
@@ -66,7 +113,7 @@ function Login() {
                       </label>
                     </div>
                     <p className="small mb-3 pb-lg-2 text-center">
-                      <Link to={'/forgot_password'}>
+                      <Link to={"/forgot_password"}>
                         <a className="text-white-50">Forgot password?</a>
                       </Link>
                     </p>

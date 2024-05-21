@@ -1,7 +1,12 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import "./Register.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import config from "../functions/config";
+import axios from "axios";
+import Cookies from "js-cookie";
+
 function Register() {
+  const navigate = useNavigate();
   const passwordEle = useRef(null);
   function togglePasswordVisibility() {
     if (passwordEle.current.type == "text") {
@@ -11,6 +16,43 @@ function Register() {
     }
   }
 
+  const [formData, setFormData] = useState({
+    full_name:"",
+    user_name: "",
+    mobile: "",
+    password: "",
+  });
+  const [responseData, setResponseData] = useState(null);
+
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const response = await axios.post(
+        `${config.base_url}/register_user/`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      // setResponseData(response.data);
+      Cookies.set("access", response.data.access);
+      if (response.data) {
+        navigate("/");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <section className="vh-100 gradient-custom">
       <div className="container py-5 h-100">
@@ -27,10 +69,10 @@ function Register() {
                   </h2>
 
                   <form
-                    action="{% url 'registerUser' %}"
-                    method="post"
+                    action="#"
+                    method="POST"
                     className="form"
-                    onsubmit="return validateForm()"
+                    onSubmit={handleSubmit}
                   >
                     <div className="form-outline mb-3">
                       <input
@@ -38,6 +80,8 @@ function Register() {
                         id="fullName"
                         name="full_name"
                         className="form-control form-control-lg"
+                        onChange={handleInputChange}
+                        value={formData.full_name}
                         required
                       />
                       <label className="form-label text-left" for="fullName">
@@ -50,6 +94,8 @@ function Register() {
                         type="text"
                         id="userName"
                         name="user_name"
+                        onChange={handleInputChange}
+                        value={formData.user_name}
                         className="form-control form-control-lg"
                         required
                       />
@@ -64,7 +110,8 @@ function Register() {
                         type="tel"
                         id="mobile"
                         name="mobile"
-                        onchange="checkPhone(this)"
+                        onChange={handleInputChange}
+                        value={formData.mobile}
                         className="form-control form-control-lg"
                         required
                       />
@@ -78,6 +125,8 @@ function Register() {
                       <input
                         type="password"
                         id="password"
+                        onChange={handleInputChange}
+                        value={formData.password}
                         ref={passwordEle}
                         pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
                         title="Must contain at least one number and one uppercase and lowercase letter, and at least 8 or more characters"
