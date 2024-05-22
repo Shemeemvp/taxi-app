@@ -1,4 +1,4 @@
-import "./Login.css";
+import "../components/Login.css";
 import React, { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import config from "../functions/config";
@@ -48,7 +48,7 @@ function Login() {
 
       console.log('===RESPONSE===',response);
       if (response.data.userID) {
-        navigate("/");
+        navigate("/trip_sheet");
       }
 
     } catch (error) {
