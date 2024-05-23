@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login, logout
 from .models import User
 from taxi_app.models import *
 from rest_framework_simplejwt.tokens import RefreshToken

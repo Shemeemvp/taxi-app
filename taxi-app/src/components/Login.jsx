@@ -45,17 +45,17 @@ function Login() {
       );
       // setResponseData(response.data);
       Cookies.set("access", response.data.access);
+      Cookies.set("ID", response.data.userID);
 
-      console.log('===RESPONSE===',response);
+      console.log("===RESPONSE===", response);
       if (response.data.userID) {
         navigate("/trip_sheet");
       }
-
     } catch (error) {
-      if(error.response.data.non_field_errors != ""){
-        alert(error.response.data.non_field_errors)
+      if (error.response.data.non_field_errors != "") {
+        alert(error.response.data.non_field_errors);
       }
-      console.log('===ERROR===',error);
+      console.log("===ERROR===", error);
     }
   };
 
@@ -74,7 +74,12 @@ function Login() {
                     Login
                   </h2>
 
-                  <form action="#" method="POST" className="form" onSubmit={handleSubmit}>
+                  <form
+                    action="#"
+                    method="POST"
+                    className="form"
+                    onSubmit={handleSubmit}
+                  >
                     <div className="form-outline mb-3">
                       <input
                         type="text"

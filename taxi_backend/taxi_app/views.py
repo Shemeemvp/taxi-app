@@ -5,6 +5,8 @@ from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import json
+from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
 
 # Create your views here.
 def home(request):
@@ -33,3 +35,12 @@ class LoginView(APIView):
         else:
             print('==ERROR==',serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+@api_view(('GET',))
+def getDriverName(request,id):
+    usr = User.objects.get(id = id)
+    drv = Driver.objects.get(user = usr)
+    if drv:
+        return Response({'status':True, 'name':drv.full_name})
+    else:
+        return Response({'status':False})
