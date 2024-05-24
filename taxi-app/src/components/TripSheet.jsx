@@ -3,8 +3,8 @@ import Header from "./Header";
 import "../components/TripSheet.css";
 import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
-import axios from 'axios';
-import config from '../functions/config'
+import axios from "axios";
+import config from "../functions/config";
 
 function TripSheet() {
   const navigate = useNavigate();
@@ -31,7 +31,7 @@ function TripSheet() {
     }
   }
 
-  const [tripNo, setTripNo] = useState("TRP01");
+  const [tripNo, setTripNo] = useState("");
   const [tripDate, setTripDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -45,6 +45,7 @@ function TripSheet() {
   const [extraKMCharge, setExtraKMCharge] = useState("");
   const [startKM, setStartKM] = useState("");
   const [endKM, setEndKM] = useState("");
+  const [totalKM, setTotalKM] = useState("");
   const [totalKiloMeter, setTotalKiloMeter] = useState("");
   const [driverName, setDriverName] = useState("");
   const [guestName, setGuestName] = useState("");
@@ -63,10 +64,23 @@ function TripSheet() {
   const [totalCharge, setTotalCharge] = useState("");
   const [advance, setAdvance] = useState("");
   const [balance, setBalance] = useState("");
-
   const [tripCharge, setTripCharge] = useState("");
   const [tripFixedCharge, setTripFixedCharge] = useState("");
   const [tripExtraCharge, setTripExtraCharge] = useState("");
+
+  const fetchTripNo = async () => {
+    try {
+      const ID = Cookies.get("ID");
+      const response = await axios.get(`${config.base_url}/get_trip_no/${ID}/`);
+      console.log("DRIVER RESPONSE===", response);
+      setTripNo(response.data.tripNo);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    fetchTripNo();
+  }, []);
 
   useEffect(() => {
     countTripDays();
@@ -74,12 +88,12 @@ function TripSheet() {
 
   const fetchDriver = async () => {
     try {
-      const ID = Cookies.get('ID')
+      const ID = Cookies.get("ID");
       const response = await axios.get(`${config.base_url}/get_driver/${ID}/`);
-      console.log('DRIVER RESPONSE===',response)
+      console.log("DRIVER RESPONSE===", response);
       setDriverName(response.data.name);
     } catch (error) {
-        console.log(error)
+      console.log(error);
     }
   };
   useEffect(() => {
@@ -89,7 +103,7 @@ function TripSheet() {
   const handleTripDateChange = (e) => {
     const selectedDate = e.target.value;
     setTripDate(selectedDate);
-    document.getElementById('endDate').setAttribute('min', selectedDate);
+    document.getElementById("endDate").setAttribute("min", selectedDate);
     countTripDays();
 
     calcTotalExpense();
@@ -98,7 +112,7 @@ function TripSheet() {
   const handleTripEndDateChange = (e) => {
     const selectedDate = e.target.value;
     setTripEndDate(selectedDate);
-    document.getElementById('startDate').setAttribute('max', selectedDate);
+    document.getElementById("startDate").setAttribute("max", selectedDate);
     countTripDays();
 
     calcTotalExpense();
@@ -136,147 +150,256 @@ function TripSheet() {
   }
 
   const checkVehicleNumber = () => {
-    var v_number = document.getElementById('vehicleNumber').value.toUpperCase();
+    var v_number = document.getElementById("vehicleNumber").value.toUpperCase();
     var v_numregexp = /^[A-Z]{2}[ -][0-9]{1,2} [A-Z]{1,2} [0-9]{4}$/;
     if (v_number.match(v_numregexp)) {
       document.getElementById("vehicleNumErr").innerHTML = "";
     } else {
-      document.getElementById("vehicleNumErr").innerHTML ='Invalid format, Ex: "XX 1 X 1111", "XX 11 XX 1111"';
+      document.getElementById("vehicleNumErr").innerHTML =
+        'Invalid format, Ex: "XX 1 X 1111", "XX 11 XX 1111"';
     }
   };
 
-  function calcTripCharge(){
-    var totTripCharge = 0
-    var tripFxCharge = 0
-    var totKm = 0
-    var extraKm = 0
-    var extraCharge = 0
-    var tripDays = parseInt(document.getElementById('tripDays').value || 1)
-    var fxCharge = parseFloat(document.getElementById('fixedCharge').value || 0)
-    var exCharge = parseFloat(document.getElementById('extraCharge').value || 0)
-    var startKm = parseFloat(document.getElementById('startKilometer').value || 0)
-    var endKm = parseFloat(document.getElementById('endKilometer').value || 0)
-    var maxKM = parseFloat(document.getElementById('maxKilometer').value || 0)
-    
-    totKm = endKm - startKm
-    if(totKm > 0 && fxCharge > 0 && maxKM > 0){
-      tripFxCharge = tripDays * fxCharge
+  function calcTripCharge() {
+    var totTripCharge = 0;
+    var tripFxCharge = 0;
+    var totKm = 0;
+    var extraKm = 0;
+    var extraCharge = 0;
+    var tripDays = parseInt(document.getElementById("tripDays").value || 1);
+    var fxCharge = parseFloat(
+      document.getElementById("fixedCharge").value || 0
+    );
+    var exCharge = parseFloat(
+      document.getElementById("extraCharge").value || 0
+    );
+    var startKm = parseFloat(
+      document.getElementById("startKilometer").value || 0
+    );
+    var endKm = parseFloat(document.getElementById("endKilometer").value || 0);
+    var maxKM = parseFloat(document.getElementById("maxKilometer").value || 0);
 
-      extraKm = totKm - (tripDays * maxKM)
-      if(extraKm > 0){
-        extraCharge = extraKm * exCharge
+    totKm = endKm - startKm;
+    if (totKm > 0 && fxCharge > 0 && maxKM > 0) {
+      tripFxCharge = tripDays * fxCharge;
+
+      extraKm = totKm - tripDays * maxKM;
+      if (extraKm > 0) {
+        extraCharge = extraKm * exCharge;
       }
-  
-      totTripCharge = tripFxCharge + extraCharge
 
-      console.log('==========TRIP CHARGE========')
-      console.log('TripDays->', tripDays)
-      console.log('fixed charge->',tripFxCharge, 'extracharge->',extraCharge, 'totaltrip->',totTripCharge)
-      
-      setTripCharge(totTripCharge)
-      setTripFixedCharge(tripFxCharge)
-      setTripExtraCharge(extraCharge)
-      // document.getElementById('tripFixedCharge').value = tripFxCharge
-      // document.getElementById('tripExtraCharge').value = extraCharge
-      // document.getElementById('tripCharge').value = parseFloat(totTripCharge)
+      totTripCharge = tripFxCharge + extraCharge;
 
-      return totTripCharge
+      console.log("==========TRIP CHARGE========");
+      console.log("TripDays->", tripDays);
+      console.log(
+        "fixed charge->",
+        tripFxCharge,
+        "extracharge->",
+        extraCharge,
+        "totaltrip->",
+        totTripCharge
+      );
+
+      setTripCharge(totTripCharge);
+      setTripFixedCharge(tripFxCharge);
+      setTripExtraCharge(extraCharge);
+
+      return totTripCharge;
     }
-    return 0
+    return 0;
   }
 
-  function calcTotalExpense(){
-    var tripCharge = calcTripCharge()
-    var permit = 0
-    var totToll = 0
-    var totParking = 0
-    var totEntrance = 0
-    var totGuideFee = 0
-    var totOtherCharge = 0
+  function calcTotalExpense() {
+    var tripCharge = calcTripCharge();
+    var permit = 0;
+    var totToll = 0;
+    var totParking = 0;
+    var totEntrance = 0;
+    var totGuideFee = 0;
+    var totOtherCharge = 0;
 
-    permit = parseFloat(document.getElementById('permitCharge').value || 0);
-    
-    document.querySelectorAll('input.km_toll').forEach(function(input) {
+    permit = parseFloat(document.getElementById("permitCharge").value || 0);
+
+    document.querySelectorAll("input.km_toll").forEach(function (input) {
       totToll += parseFloat(input.value) || 0;
     });
 
-    document.querySelectorAll('input.km_parking').forEach(function(input) {
+    document.querySelectorAll("input.km_parking").forEach(function (input) {
       totParking += parseFloat(input.value) || 0;
     });
 
-    document.querySelectorAll('input.km_entrance').forEach(function(input) {
+    document.querySelectorAll("input.km_entrance").forEach(function (input) {
       totEntrance += parseFloat(input.value) || 0;
     });
 
-    document.querySelectorAll('input.km_guide_fee').forEach(function(input) {
+    document.querySelectorAll("input.km_guide_fee").forEach(function (input) {
       totGuideFee += parseFloat(input.value) || 0;
     });
 
-    document.querySelectorAll('input.km_other_charge').forEach(function(input) {
-      totOtherCharge += parseFloat(input.value) || 0;
-    });
+    document
+      .querySelectorAll("input.km_other_charge")
+      .forEach(function (input) {
+        totOtherCharge += parseFloat(input.value) || 0;
+      });
 
-    console.log('===========TOTAL EXPENSE=========')
+    console.log("===========TOTAL EXPENSE=========");
 
-    console.log('permit==', permit)
-    console.log('toll==',totToll)
-    console.log('parking==',totParking)
-    console.log('Entrance==',totEntrance)
-    console.log('GuideFee==',totGuideFee)
-    console.log('otherCHarges==',totOtherCharge)
-    
-    var total = permit + parseFloat(tripCharge) + parseFloat(totToll) + parseFloat(totParking) + parseFloat(totEntrance) + parseFloat(totGuideFee) + parseFloat(totOtherCharge)
-    document.getElementById('totalTripExpense').value = total
+    console.log("permit==", permit);
+    console.log("toll==", totToll);
+    console.log("parking==", totParking);
+    console.log("Entrance==", totEntrance);
+    console.log("GuideFee==", totGuideFee);
+    console.log("otherCHarges==", totOtherCharge);
+
+    var total =
+      permit +
+      parseFloat(tripCharge) +
+      parseFloat(totToll) +
+      parseFloat(totParking) +
+      parseFloat(totEntrance) +
+      parseFloat(totGuideFee) +
+      parseFloat(totOtherCharge);
+    setTotalCharge(total);
     rewriteBalance();
-
   }
 
-  function handleEndKilometer(e){
-    let value = e.target.value
-    var startKm = parseFloat(document.getElementById('startKilometer').value || 0)
-    var endKm = parseFloat(value || 0)
-    if(endKm != ""){
-      if(endKm < startKm){
-        alert('Ending kilometer should be greater than starting kilometer.!')
-        e.target.value = ""
-      }
-    }
-    rewriteKM();
-    calcTotalExpense(); 
-  }
-
-  function handleStartKilometer(e){
-    let value = e.target.value
-    var startKm = parseFloat(value || 0)
-    var endKm = parseFloat(document.getElementById('endKilometer').value || 0)
-    if(startKm != "" && endKm !=""){
-      if(startKm > endKm){
-        alert('Starting kilometer should be less than End kilometer.!')
-        e.target.value = ""
+  function handleEndKilometer(e) {
+    var startKm = parseFloat(startKM || 0);
+    var endKm = parseFloat(endKM || 0);
+    if (endKm != "") {
+      if (endKm < startKm) {
+        setEndKM("");
+        setTotalKiloMeter("");
+        alert("Ending kilometer should be greater than starting kilometer.!");
+      } else {
+        var totKm = parseFloat(endKM || 0) - parseFloat(startKM || 0);
+        setTotalKiloMeter(totKm);
       }
     }
     rewriteKM();
     calcTotalExpense();
   }
 
-  function rewriteKM(){
-    var totKm = 0
-    if(document.getElementById('endKilometer').value != ""){
-      totKm = parseFloat(document.getElementById('endKilometer').value || 0) - parseFloat(document.getElementById('startKilometer').value || 0)
-      if (!(totKm < 0)) {
-        document.getElementById('totalKilometer').value = totKm
-        // setTotalKM(totKm)
+  function handleStartKilometer(e) {
+    var startKm = parseFloat(startKM || 0);
+    var endKm = parseFloat(endKM || 0);
+    if (startKm != "" && endKm != "") {
+      if (startKm > endKm) {
+        setStartKM("");
+        setTotalKiloMeter("");
+        alert("Starting kilometer should be less than End kilometer.!");
+      } else {
+        var totKm = parseFloat(endKM || 0) - parseFloat(startKM || 0);
+        setTotalKiloMeter(totKm);
       }
     }
-
+    rewriteKM();
+    calcTotalExpense();
   }
 
-  function rewriteBalance(){
-    var adv = parseFloat(document.getElementById('advanceAmount').value || 0)
-    var tot = parseFloat(document.getElementById('totalTripExpense').value || 0)
-  
-    document.getElementById('balanceAmount').value = tot - adv
+  function rewriteKM() {
+    var totKm = 0;
+    if (document.getElementById("endKilometer").value != "") {
+      totKm = parseFloat(endKM || 0) - parseFloat(startKM || 0);
+      if (!(totKm < 0)) {
+        setTotalKM(totKm);
+      }
+    }
   }
+
+  function rewriteBalance() {
+    var adv = parseFloat(advance || 0);
+    var tot = parseFloat(totalCharge || 0);
+    var bal = tot - adv;
+    setBalance(bal);
+  }
+
+  const handleHourSubmit = async (e) => {
+    e.preventDefault();
+    const ID = Cookies.get('ID');
+    const data = {
+      user_id:ID,
+      trip_no: tripNo,
+      trip_date: tripDate,
+      driver_name: driverName,
+      guest: guestName,
+      vehicle_no: vehicleNumber,
+      vehicle_name: vehicleName,
+      trip_charge_type: "kilometer",
+      fixed_hour_charge: null,
+      max_hour: null,
+      extra_hour_charge: null,
+      fixed_charge: fixedCharge,
+      max_kilometer: maxRange,
+      extra_charge: extraKMCharge,
+      starting_km: startKM,
+      ending_km: endKM,
+      trip_end_date: tripEndDate,
+      starting_place: startPlace,
+      starting_time: startTime,
+      destination: destination,
+      time_of_arrival: arrivalTime,
+      kilometers: totalKiloMeter,
+      permit: permit,
+      toll: toll,
+      parking: parking,
+      entrance: entrance,
+      guide_fee: guideFee,
+      other_charges: otherChargeAmount,
+      advance: advance,
+      trip_fixed_charge: tripFixedCharge,
+      trip_extra_charge: tripExtraCharge,
+      trip_charge: tripCharge,
+      total_trip_expense: totalCharge,
+      trip_days: document.getElementById("tripDays").value,
+      balance: balance,
+    };
+    try {
+      const response = await axios.post(
+        `${config.base_url}/end_current_trip/`,
+        data,
+        // { headers: header }
+      );
+      console.log(response.data);
+      if (response.status === 201) {
+        navigate('/previous_trip')
+      }
+
+      // setTripNo(tripNo);
+      // setTripDate(new Date().toISOString().split("T")[0])
+      // setTripEndDate(new Date().toISOString().split("T")[0])
+      // setDriverName('')
+      // setGuestName('')
+      // setVehicleNumber('')
+      // setVehicleName('')
+      // setFixedCharge('')
+      // setMaxRange('')
+      // setExtraKMCharge('')
+      // setStartKM('')
+      // setEndKM('')
+      // setStartPlace('')
+      // setStartTime('')
+      // setDestination('')
+      // setArrivalTime('')
+      // setTotalKiloMeter('')
+      // setPermit('')
+      // setToll('')
+      // setParking('')
+      // setEntrance('')
+      // setGuideFee('')
+      // setOtherChargeAmount('')
+      // setAdvance('')
+      // setTripFixedCharge('')
+      // setTripExtraCharge('')
+      // setTripCharge('')
+      // setTotalCharge('')
+      // document.getElementById('tripDays').value = ""
+      // setBalance('')
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <>
@@ -320,6 +443,7 @@ function TripSheet() {
                     method="post"
                     className="requires-validation"
                     id="km_based_form"
+                    onSubmit={handleHourSubmit}
                   >
                     <div className="row gx-2">
                       <div className="col-sm-6">
@@ -332,7 +456,7 @@ function TripSheet() {
                             setTripNo(e.target.value);
                           }}
                           placeholder=""
-                          readonly
+                          readOnly
                         />
                         <label for="">Trip No.*</label>
                       </div>
@@ -373,7 +497,9 @@ function TripSheet() {
                         onBlur={checkVehicleNumber}
                         placeholder="Vehicle No."
                         value={vehicleNumber}
-                        onChange={(e)=>{setVehicleNumber(e.target.value)}}
+                        onChange={(e) => {
+                          setVehicleNumber(e.target.value);
+                        }}
                         required
                       />
                       <div className="text-danger" id="vehicleNumErr"></div>
@@ -434,7 +560,9 @@ function TripSheet() {
                         type="text"
                         name="driver_name"
                         value={driverName}
-                        onChange={(e)=>{setDriverName(e.target.value)}}
+                        onChange={(e) => {
+                          setDriverName(e.target.value);
+                        }}
                         placeholder="Diver Name"
                         required
                       />
@@ -448,7 +576,9 @@ function TripSheet() {
                         name="guest_name"
                         id="guestName"
                         value={guestName}
-                        onChange={(e)=>{setGuestName(e.target.value)}}
+                        onChange={(e) => {
+                          setGuestName(e.target.value);
+                        }}
                         placeholder="Guest Name"
                         required
                       />
@@ -464,7 +594,9 @@ function TripSheet() {
                           id="startKilometer"
                           value={startKM}
                           onBlur={handleStartKilometer}
-                          onChange={(e)=>{setStartKM(e.target.value)}}
+                          onChange={(e) => {
+                            setStartKM(e.target.value);
+                          }}
                           placeholder="0.0"
                           required
                         />
@@ -476,7 +608,9 @@ function TripSheet() {
                           type="number"
                           name="end_kilometer"
                           value={endKM}
-                          onChange={(e)=>{setEndKM(e.target.value)}}
+                          onChange={(e) => {
+                            setEndKM(e.target.value);
+                          }}
                           onBlur={handleEndKilometer}
                           id="endKilometer"
                           placeholder="0.0"
@@ -492,7 +626,9 @@ function TripSheet() {
                           type="text"
                           name="starting_place"
                           value={startPlace}
-                          onChange={(e)=>{setStartPlace(e.target.value)}}
+                          onChange={(e) => {
+                            setStartPlace(e.target.value);
+                          }}
                           placeholder="Starting Place"
                           required
                         />
@@ -504,7 +640,9 @@ function TripSheet() {
                           type="time"
                           name="starting_time"
                           value={startTime}
-                          onChange={(e)=>{setStartTime(e.target.value)}}
+                          onChange={(e) => {
+                            setStartTime(e.target.value);
+                          }}
                           required
                         />
                         <label for="">Time</label>
@@ -518,7 +656,9 @@ function TripSheet() {
                           type="text"
                           name="destination"
                           value={destination}
-                          onChange={(e)=>{setDestination(e.target.value)}}
+                          onChange={(e) => {
+                            setDestination(e.target.value);
+                          }}
                           placeholder="Destination"
                         />
                         <label for="">Destination</label>
@@ -528,7 +668,9 @@ function TripSheet() {
                           className="form-control"
                           type="time"
                           value={arrivalTime}
-                          onChange={(e)=>{setArrivalTime(e.target.value)}}
+                          onChange={(e) => {
+                            setArrivalTime(e.target.value);
+                          }}
                           name="time_of_arrival"
                         />
                         <label for="">Time of Arrival</label>
@@ -563,10 +705,9 @@ function TripSheet() {
                         type="number"
                         name="kilometer"
                         value={totalKiloMeter}
-                        onChange={(e)=>{setTotalKiloMeter(e.target.value)}}
                         id="totalKilometer"
                         placeholder="Kilometers"
-                        readonly
+                        readOnly
                       />
                       <label for="">Kilometers</label>
                     </div>
@@ -578,7 +719,9 @@ function TripSheet() {
                         name="permit"
                         placeholder="Permit"
                         value={permit}
-                        onChange={(e)=>{setPermit(e.target.value)}}
+                        onChange={(e) => {
+                          setPermit(e.target.value);
+                        }}
                         onBlur={calcTotalExpense}
                       />
                       <label for="">Permit</label>
@@ -590,7 +733,9 @@ function TripSheet() {
                         name="toll[]"
                         placeholder="Toll"
                         value={toll}
-                        onChange={(e)=>{setToll(e.target.value)}}
+                        onChange={(e) => {
+                          setToll(e.target.value);
+                        }}
                         onBlur={calcTotalExpense}
                       />
                       <label for="">Toll</label>
@@ -606,7 +751,9 @@ function TripSheet() {
                         name="parking[]"
                         placeholder="Parking"
                         value={parking}
-                        onChange={(e)=>{setParking(e.target.value)}}
+                        onChange={(e) => {
+                          setParking(e.target.value);
+                        }}
                         onBlur={calcTotalExpense}
                       />
                       <label for="">Parking</label>
@@ -622,7 +769,9 @@ function TripSheet() {
                         name="entrance[]"
                         placeholder="Entrance"
                         value={entrance}
-                        onChange={(e)=>{setEntrance(e.target.value)}}
+                        onChange={(e) => {
+                          setEntrance(e.target.value);
+                        }}
                         onBlur={calcTotalExpense}
                       />
                       <label for="">Entrance</label>
@@ -635,7 +784,9 @@ function TripSheet() {
                         type="text"
                         name="guide_place[]"
                         value={guidePlace}
-                        onChange={(e)=>{setGuidePlace(e.target.value)}}
+                        onChange={(e) => {
+                          setGuidePlace(e.target.value);
+                        }}
                         placeholder="Guide Place.."
                       />
                       <input
@@ -644,7 +795,9 @@ function TripSheet() {
                         name="guide_fee[]"
                         placeholder="Guide Fee"
                         value={guideFee}
-                        onChange={(e)=>{setGuideFee(e.target.value)}}
+                        onChange={(e) => {
+                          setGuideFee(e.target.value);
+                        }}
                         onBlur={calcTotalExpense}
                       />
                       <label for="">Guide Fee</label>
@@ -660,7 +813,9 @@ function TripSheet() {
                         className="form-control"
                         type="text"
                         value={otherCharge}
-                        onChange={(e)=>{setOtherCharge(e.target.value)}}
+                        onChange={(e) => {
+                          setOtherCharge(e.target.value);
+                        }}
                         name="other_charge[]"
                         placeholder="Other charge description.."
                       />
@@ -670,7 +825,9 @@ function TripSheet() {
                         name="other_charge_amount[]"
                         placeholder="Other charge amount."
                         value={otherChargeAmount}
-                        onChange={(e)=>{setOtherChargeAmount(e.target.value)}}
+                        onChange={(e) => {
+                          setOtherChargeAmount(e.target.value);
+                        }}
                         onBlur={calcTotalExpense}
                       />
                       <label for="">Other Charge</label>
@@ -706,9 +863,8 @@ function TripSheet() {
                         id="totalTripExpense"
                         name="total"
                         value={totalCharge}
-                        onChange={(e)=>{setTotalCharge(e.target.value)}}
                         placeholder="Total Trip Expense"
-                        readonly
+                        readOnly
                       />
                       <label for="">
                         <b>Total Charge</b>
@@ -723,7 +879,9 @@ function TripSheet() {
                         id="advanceAmount"
                         placeholder="Advance"
                         value={advance}
-                        onChange={(e)=>{setAdvance(e.target.value)}}
+                        onChange={(e) => {
+                          setAdvance(e.target.value);
+                        }}
                         onBlur={rewriteBalance}
                       />
                       <label for="">Advance</label>
@@ -734,10 +892,9 @@ function TripSheet() {
                         type="number"
                         name="balance"
                         value={balance}
-                        onChange={(e)=>{setBalance(e.target.value)}}
                         id="balanceAmount"
                         placeholder="Balance"
-                        readonly
+                        readOnly
                       />
                       <label for="">Balance</label>
                     </div>
@@ -770,7 +927,7 @@ function TripSheet() {
                           name="trip_number"
                           value="{{tripNo}}"
                           placeholder="{{tripNo}}"
-                          readonly
+                          readOnly
                         />
                         <label for="">Trip No.*</label>
                       </div>
@@ -890,7 +1047,7 @@ function TripSheet() {
                             type="text"
                             name="ride_hours[]"
                             id="hours1"
-                            readonly
+                            readOnly
                           />
                           <label for="">Hours</label>
                         </div>
@@ -1028,7 +1185,7 @@ function TripSheet() {
                         value="0.0"
                         id="hr_totalKilometer"
                         placeholder="Kilometers"
-                        readonly
+                        readOnly
                       />
                       <label for="">Kilometers</label>
                     </div>
@@ -1153,7 +1310,7 @@ function TripSheet() {
                         name="total"
                         value="0.0"
                         placeholder="Total Trip Expense"
-                        readonly
+                        readOnly
                       />
                       <label for="">
                         <b>Total Charge</b>
@@ -1180,7 +1337,7 @@ function TripSheet() {
                         value="0.0"
                         id="hr_balanceAmount"
                         placeholder="Balance"
-                        readonly
+                        readOnly
                       />
                       <label for="">Balance</label>
                     </div>

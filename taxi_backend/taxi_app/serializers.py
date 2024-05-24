@@ -64,3 +64,8 @@ class LoginSerializer(serializers.Serializer):
                 'access': str(refresh.access_token),
             }
         raise serializers.ValidationError("Incorrect Credentials")
+    
+class TCS_FormSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TSC_Form
+        fields = '__all__'

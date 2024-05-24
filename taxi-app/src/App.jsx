@@ -5,11 +5,12 @@ import Register from "./components/Register";
 import ForgotPassword from "./components/ForgotPassword";
 import TripSheet from "./components/TripSheet";
 import PreviousTrip from "./components/PreviousTrip";
+import PrivateRoutes from "./components/PrivateRoutes";
 function App() {
   return (
     <>
       <BrowserRouter>
-        <Routes>
+        <Routes element={<PrivateRoutes />}>
           <Route exact path="/" element={<Login />}></Route>
           <Route path="/sign_up" element={<Register />}></Route>
           <Route path="/forgot_password" element={<ForgotPassword />}></Route>
