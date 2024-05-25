@@ -13,10 +13,6 @@ function TripSheet() {
     Authorization: `Bearer ${refreshToken}`,
   };
 
-  if (refreshToken) {
-  } else {
-    navigate("/");
-  }
   function toggleTripSheetForm() {
     const toggleFormBtn = document.getElementById("toggleFormBtn");
     const kmBased = document.getElementById("km_based");
@@ -340,20 +336,20 @@ function TripSheet() {
       starting_time: startTime,
       destination: destination,
       time_of_arrival: arrivalTime,
-      kilometers: totalKiloMeter,
-      permit: permit,
-      toll: toll,
-      parking: parking,
-      entrance: entrance,
-      guide_fee: guideFee,
-      other_charges: otherChargeAmount,
-      advance: advance,
-      trip_fixed_charge: tripFixedCharge,
-      trip_extra_charge: tripExtraCharge,
-      trip_charge: tripCharge,
-      total_trip_expense: totalCharge,
+      kilometers: parseFloat(totalKiloMeter || 0),
+      permit: parseFloat(permit || 0),
+      toll: parseFloat(toll || 0),
+      parking: parseFloat(parking || 0),
+      entrance: parseFloat(entrance || 0),
+      guide_fee: parseFloat(guideFee || 0),
+      other_charges: parseFloat(otherChargeAmount || 0),
+      advance: parseFloat(advance || 0),
+      trip_fixed_charge: parseFloat(tripFixedCharge || 0),
+      trip_extra_charge: parseFloat(tripExtraCharge || 0),
+      trip_charge: parseFloat(tripCharge || 0),
+      total_trip_expense: parseFloat(totalCharge || 0),
       trip_days: document.getElementById("tripDays").value,
-      balance: balance,
+      balance: parseFloat(balance || 0),
     };
     try {
       const response = await axios.post(

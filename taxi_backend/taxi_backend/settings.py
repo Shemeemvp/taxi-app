@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+BASE_URL =  'https://milaynacabservice.com'
 
 # Application definition
 

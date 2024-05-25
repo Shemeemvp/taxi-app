@@ -7,6 +7,12 @@ from rest_framework.response import Response
 import json
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+import qrcode
+from django.conf import settings
+import os
+from django.core.files import File
+
 
 # Create your views here.
 def home(request):
@@ -97,13 +103,45 @@ def end_current_trip(request):
             usr = None
             drv = None
 
-        print('USER===',usr,drv)
-
         request.data['user'] = usr.id if usr else None
         request.data['driver'] = drv.id if drv else None
 
         serializer = TCS_FormSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+
+            tripId = serializer.data['id']
+            trip = TSC_Form.objects.get(id = tripId)
+            qr = qrcode.make(f"{settings.BASE_URL}/qr_details")
+
+            image_directory = os.path.join(settings.MEDIA_ROOT, "images")
+            if not os.path.exists(image_directory):
+                os.makedirs(image_directory)
+            image_path = os.path.join(settings.MEDIA_ROOT, "images", "trip" + str(trip.id) + ".png")
+            qr.save(image_path)
+            with open(image_path, "rb") as reopen:
+                djangofile = File(reopen)
+                trip.bill_qr = djangofile
+                trip.save()
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+def allTrips(request, id):
+    try:
+        usr = get_object_or_404(User, id=id)
+        drv = get_object_or_404(Driver, user=usr)
+    except:
+        return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)
+
+    trips = TSC_Form.objects.filter(driver=drv)
+    serializer = AllTripsSerializer(trips, many=True)
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def feedbacks(request):
+    fb = Customer_Feedbacks.objects.all()
+    serializer = FeedbackSerializer(fb, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

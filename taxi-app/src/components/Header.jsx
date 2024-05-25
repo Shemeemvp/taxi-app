@@ -1,6 +1,6 @@
 import React from "react";
 import "../components/Header.css";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Cookies from 'js-cookie';
 
 function Header() {
@@ -10,10 +10,6 @@ function Header() {
     Authorization: `Bearer ${refreshToken}`,
   };
 
-  if (refreshToken) {
-  } else {
-    navigate("/");
-  }
   const handleLogout = async () => {
     try {
       Cookies.remove("access");
@@ -59,21 +55,21 @@ function Header() {
           <nav id="navbar" className="navbar">
             <ul>
               <li>
-                <a className="nav-link" href="{% url 'tripSheetPage' %}">
+                <Link className="nav-link" to="/trip_sheet">
                   <i className="fas fa-plus"></i> New Trip
-                </a>
+                </Link>
                 <span className="hover"></span>
               </li>
               <li>
-                <a className="nav-link" href="{% url 'allTrips' %}">
+                <Link className="nav-link" to="/all_trips">
                   <i className="fas fa-road"></i> View Trips
-                </a>
+                </Link>
                 <span className="hover"></span>
               </li>
               <li>
-                <a className="nav-link" >
+                <Link className="nav-link" to="/feedbacks">
                   <i className="fa-solid fa-comment-dots"></i> Feedbacks
-                </a>
+                </Link>
                 <span className="hover"></span>
               </li>
               <li>

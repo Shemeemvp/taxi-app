@@ -69,3 +69,13 @@ class TCS_FormSerializer(serializers.ModelSerializer):
     class Meta:
         model = TSC_Form
         fields = '__all__'
+
+class AllTripsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TSC_Form
+        fields = ['id', 'trip_no', 'driver_name', 'guest', 'kilometers', 'total_trip_expense']
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer_Feedbacks
+        fields = "__all__"
