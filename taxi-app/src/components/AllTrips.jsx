@@ -7,6 +7,7 @@ import axios from "axios";
 import config from "../functions/config";
 
 function AllTrips() {
+  const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const fetchTrips = () => {
     let user_id = Cookies.get("ID");
@@ -32,6 +33,19 @@ function AllTrips() {
   useEffect(() => {
     fetchTrips();
   }, []);
+
+  function handleDeleteTrip(id) {
+    var tripID = id;
+    axios
+      .delete(`${config.base_url}/delete_trip/${tripID}/`)
+      .then((res) => {
+        console.log(res)
+        fetchTrips();
+      })
+      .catch((err) => {
+        console.log(err)
+      });
+  }
   return (
     <>
       <Header />
@@ -89,26 +103,42 @@ function AllTrips() {
                         <td
                           className="text-center"
                           style={{ verticalAlign: "middle" }}
-                        >{trip.driver_name}</td>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >{trip.guest}</td>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >{trip.kilometers}</td>
-                        <td
-                          className="text-center"
-                          style={{ verticalAlign: "middle" }}
-                        >{trip.total_trip_expense}</td>
+                        >
+                          {trip.driver_name}
+                        </td>
                         <td
                           className="text-center"
                           style={{ verticalAlign: "middle" }}
                         >
-                          <Link to="/view_tsc_data" className="btn btn-secondary btn-sm w-100">VIEW</Link>
+                          {trip.guest}
+                        </td>
+                        <td
+                          className="text-center"
+                          style={{ verticalAlign: "middle" }}
+                        >
+                          {trip.kilometers}
+                        </td>
+                        <td
+                          className="text-center"
+                          style={{ verticalAlign: "middle" }}
+                        >
+                          {trip.total_trip_expense}
+                        </td>
+                        <td
+                          className="text-center"
+                          style={{ verticalAlign: "middle" }}
+                        >
+                          <a
+                            onClick={()=>{navigate(`/view_tsc_data/${trip.id}`)}}
+                            className="btn btn-secondary btn-sm w-100"
+                          >
+                            VIEW
+                          </a>
                           <br />
                           <a
+                            onClick={() => {
+                              handleDeleteTrip(trip.id);
+                            }}
                             className="btn btn-secondary btn-sm w-100 mt-1"
                           >
                             DELETE

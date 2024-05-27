@@ -37,11 +37,13 @@ function TripSheet() {
   const [vehicleName, setVehicleName] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [fixedCharge, setFixedCharge] = useState("");
+  const [fixedHourCharge, setFixedHourCharge] = useState("");
+  const [maxHour, setMaxHour] = useState("");
+  const [extraHourCharge, setExtraHourCharge] = useState("");
   const [maxRange, setMaxRange] = useState("");
   const [extraKMCharge, setExtraKMCharge] = useState("");
   const [startKM, setStartKM] = useState("");
   const [endKM, setEndKM] = useState("");
-  const [totalKM, setTotalKM] = useState("");
   const [totalKiloMeter, setTotalKiloMeter] = useState("");
   const [driverName, setDriverName] = useState("");
   const [guestName, setGuestName] = useState("");
@@ -64,9 +66,10 @@ function TripSheet() {
   const [tripFixedCharge, setTripFixedCharge] = useState("");
   const [tripExtraCharge, setTripExtraCharge] = useState("");
 
+  const ID = Cookies.get("ID");
+
   const fetchTripNo = async () => {
     try {
-      const ID = Cookies.get("ID");
       const response = await axios.get(`${config.base_url}/get_trip_no/${ID}/`);
       console.log("DRIVER RESPONSE===", response);
       setTripNo(response.data.tripNo);
@@ -84,7 +87,6 @@ function TripSheet() {
 
   const fetchDriver = async () => {
     try {
-      const ID = Cookies.get("ID");
       const response = await axios.get(`${config.base_url}/get_driver/${ID}/`);
       console.log("DRIVER RESPONSE===", response);
       setDriverName(response.data.name);
@@ -296,10 +298,10 @@ function TripSheet() {
 
   function rewriteKM() {
     var totKm = 0;
-    if (document.getElementById("endKilometer").value != "") {
+    if (endKM != "") {
       totKm = parseFloat(endKM || 0) - parseFloat(startKM || 0);
       if (!(totKm < 0)) {
-        setTotalKM(totKm);
+        setTotalKiloMeter(totKm);
       }
     }
   }
@@ -311,11 +313,11 @@ function TripSheet() {
     setBalance(bal);
   }
 
-  const handleHourSubmit = async (e) => {
+  const handleKilometerSubmit = async (e) => {
     e.preventDefault();
-    const ID = Cookies.get('ID');
+    const ID = Cookies.get("ID");
     const data = {
-      user_id:ID,
+      user_id: ID,
       trip_no: tripNo,
       trip_date: tripDate,
       driver_name: driverName,
@@ -342,6 +344,8 @@ function TripSheet() {
       parking: parseFloat(parking || 0),
       entrance: parseFloat(entrance || 0),
       guide_fee: parseFloat(guideFee || 0),
+      guide_fee_place: guidePlace,
+      other_charge_description: otherCharge,
       other_charges: parseFloat(otherChargeAmount || 0),
       advance: parseFloat(advance || 0),
       trip_fixed_charge: parseFloat(tripFixedCharge || 0),
@@ -354,12 +358,12 @@ function TripSheet() {
     try {
       const response = await axios.post(
         `${config.base_url}/end_current_trip/`,
-        data,
+        data
         // { headers: header }
       );
       console.log(response.data);
       if (response.status === 201) {
-        navigate('/previous_trip')
+        navigate("/previous_trip");
       }
 
       // setTripNo(tripNo);
@@ -397,6 +401,93 @@ function TripSheet() {
     }
   };
 
+  const handleHourSubmit = async (e) => {
+    e.preventDefault();
+    const ID = Cookies.get("ID");
+    const data = {
+      user_id: ID,
+      trip_no: tripNo,
+      trip_date: tripDate,
+      driver_name: driverName,
+      guest: guestName,
+      vehicle_no: vehicleNumber,
+      vehicle_name: vehicleName,
+      trip_charge_type: "hour",
+      fixed_hour_charge: fixedHourCharge,
+      max_hour: maxHour,
+      extra_hour_charge: extraHourCharge,
+      fixed_charge: null,
+      max_kilometer: null,
+      extra_charge: null,
+      starting_km: startKM,
+      ending_km: endKM,
+      trip_end_date: tripEndDate,
+      starting_place: startPlace,
+      starting_time: startTime,
+      destination: destination,
+      time_of_arrival: arrivalTime,
+      kilometers: parseFloat(totalKiloMeter || 0),
+      permit: parseFloat(permit || 0),
+      toll: parseFloat(toll || 0),
+      parking: parseFloat(parking || 0),
+      entrance: parseFloat(entrance || 0),
+      guide_fee: parseFloat(guideFee || 0),
+      guide_fee_place: guidePlace,
+      other_charge_description: otherCharge,
+      other_charges: parseFloat(otherChargeAmount || 0),
+      advance: parseFloat(advance || 0),
+      trip_fixed_charge: parseFloat(tripFixedCharge || 0),
+      trip_extra_charge: parseFloat(tripExtraCharge || 0),
+      trip_charge: parseFloat(tripCharge || 0),
+      total_trip_expense: parseFloat(totalCharge || 0),
+      trip_days: document.getElementById("tripDays").value,
+      balance: parseFloat(balance || 0),
+    };
+    try {
+      const response = await axios.post(
+        `${config.base_url}/end_current_trip/`,
+        data
+        // { headers: header }
+      );
+      console.log(response.data);
+      if (response.status === 201) {
+        navigate("/previous_trip");
+      }
+
+      // setTripNo(tripNo);
+      // setTripDate(new Date().toISOString().split("T")[0])
+      // setTripEndDate(new Date().toISOString().split("T")[0])
+      // setDriverName('')
+      // setGuestName('')
+      // setVehicleNumber('')
+      // setVehicleName('')
+      // setFixedCharge('')
+      // setMaxRange('')
+      // setExtraKMCharge('')
+      // setStartKM('')
+      // setEndKM('')
+      // setStartPlace('')
+      // setStartTime('')
+      // setDestination('')
+      // setArrivalTime('')
+      // setTotalKiloMeter('')
+      // setPermit('')
+      // setToll('')
+      // setParking('')
+      // setEntrance('')
+      // setGuideFee('')
+      // setOtherChargeAmount('')
+      // setAdvance('')
+      // setTripFixedCharge('')
+      // setTripExtraCharge('')
+      // setTripCharge('')
+      // setTotalCharge('')
+      // document.getElementById('tripDays').value = ""
+      // setBalance('')
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <>
       <Header />
@@ -439,7 +530,7 @@ function TripSheet() {
                     method="post"
                     className="requires-validation"
                     id="km_based_form"
-                    onSubmit={handleHourSubmit}
+                    onSubmit={handleKilometerSubmit}
                   >
                     <div className="row gx-2">
                       <div className="col-sm-6">
@@ -448,13 +539,11 @@ function TripSheet() {
                           type="text"
                           name="trip_number"
                           value={tripNo}
-                          onChange={(e) => {
-                            setTripNo(e.target.value);
-                          }}
+                          onChange={(e) => {setTripNo(e.target.value);}}
                           placeholder=""
                           readOnly
                         />
-                        <label for="">Trip No.*</label>
+                        <label htmlFor="">Trip No.*</label>
                       </div>
                       <div className="col-sm-6">
                         <input
@@ -466,7 +555,7 @@ function TripSheet() {
                           value={tripDate}
                           required
                         />
-                        <label for="">Date*</label>
+                        <label htmlFor="">Date*</label>
                       </div>
                     </div>
 
@@ -482,7 +571,7 @@ function TripSheet() {
                         value={vehicleName}
                         required
                       />
-                      <label for="">Vehicle Name*</label>
+                      <label htmlFor="">Vehicle Name*</label>
                     </div>
                     <div className="col-md-12">
                       <input
@@ -499,7 +588,7 @@ function TripSheet() {
                         required
                       />
                       <div className="text-danger" id="vehicleNumErr"></div>
-                      <label for="">Vehicle No.*</label>
+                      <label htmlFor="">Vehicle No.*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -515,7 +604,7 @@ function TripSheet() {
                         onChange={handleFixedCharge}
                         required
                       />
-                      <label for="">Fixed Charge*</label>
+                      <label htmlFor="">Fixed Charge*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -531,7 +620,7 @@ function TripSheet() {
                         value={maxRange}
                         required
                       />
-                      <label for="">Max. Kilometer*</label>
+                      <label htmlFor="">Max. Kilometer*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -547,7 +636,7 @@ function TripSheet() {
                         value={extraKMCharge}
                         required
                       />
-                      <label for="">Extra Running Charge*</label>
+                      <label htmlFor="">Extra Running Charge*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -562,7 +651,7 @@ function TripSheet() {
                         placeholder="Diver Name"
                         required
                       />
-                      <label for="">Driver Name*</label>
+                      <label htmlFor="">Driver Name*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -578,7 +667,7 @@ function TripSheet() {
                         placeholder="Guest Name"
                         required
                       />
-                      <label for="">Guest Name*</label>
+                      <label htmlFor="">Guest Name*</label>
                     </div>
 
                     <div className="row gx-2">
@@ -596,7 +685,7 @@ function TripSheet() {
                           placeholder="0.0"
                           required
                         />
-                        <label for="">Starting Kilometer</label>
+                        <label htmlFor="">Starting Kilometer</label>
                       </div>
                       <div className="col-12 col-sm-6">
                         <input
@@ -611,7 +700,7 @@ function TripSheet() {
                           id="endKilometer"
                           placeholder="0.0"
                         />
-                        <label for="">Ending Kilometer</label>
+                        <label htmlFor="">Ending Kilometer</label>
                       </div>
                     </div>
 
@@ -628,7 +717,7 @@ function TripSheet() {
                           placeholder="Starting Place"
                           required
                         />
-                        <label for="">Starting Place*</label>
+                        <label htmlFor="">Starting Place*</label>
                       </div>
                       <div className="col-sm-6">
                         <input
@@ -641,7 +730,7 @@ function TripSheet() {
                           }}
                           required
                         />
-                        <label for="">Time</label>
+                        <label htmlFor="">Time</label>
                       </div>
                     </div>
 
@@ -657,7 +746,7 @@ function TripSheet() {
                           }}
                           placeholder="Destination"
                         />
-                        <label for="">Destination</label>
+                        <label htmlFor="">Destination</label>
                       </div>
                       <div className="col-sm-6">
                         <input
@@ -669,7 +758,7 @@ function TripSheet() {
                           }}
                           name="time_of_arrival"
                         />
-                        <label for="">Time of Arrival</label>
+                        <label htmlFor="">Time of Arrival</label>
                       </div>
                     </div>
                     <div className="col-12">
@@ -681,7 +770,7 @@ function TripSheet() {
                         id="endDate"
                         value={tripEndDate}
                       />
-                      <label for="">Trip End Date</label>
+                      <label htmlFor="">Trip End Date</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -693,7 +782,7 @@ function TripSheet() {
                         step="1"
                         onChange={calcTotalExpense}
                       />
-                      <label for="">Trip Days</label>
+                      <label htmlFor="">Trip Days</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -705,7 +794,7 @@ function TripSheet() {
                         placeholder="Kilometers"
                         readOnly
                       />
-                      <label for="">Kilometers</label>
+                      <label htmlFor="">Kilometers</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -720,7 +809,7 @@ function TripSheet() {
                         }}
                         onBlur={calcTotalExpense}
                       />
-                      <label for="">Permit</label>
+                      <label htmlFor="">Permit</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -734,7 +823,7 @@ function TripSheet() {
                         }}
                         onBlur={calcTotalExpense}
                       />
-                      <label for="">Toll</label>
+                      <label htmlFor="">Toll</label>
                     </div>
                     {/* <div className="add_toll" id="addAnotherToll"></div>
                               <div className="mt-1">
@@ -752,7 +841,7 @@ function TripSheet() {
                         }}
                         onBlur={calcTotalExpense}
                       />
-                      <label for="">Parking</label>
+                      <label htmlFor="">Parking</label>
                     </div>
                     {/* <div className="add_parking" id="addAnotherParking"></div>
                               <div className="mt-1">
@@ -770,7 +859,7 @@ function TripSheet() {
                         }}
                         onBlur={calcTotalExpense}
                       />
-                      <label for="">Entrance</label>
+                      <label htmlFor="">Entrance</label>
                     </div>
 
                     <div className="col-12">
@@ -796,7 +885,7 @@ function TripSheet() {
                         }}
                         onBlur={calcTotalExpense}
                       />
-                      <label for="">Guide Fee</label>
+                      <label htmlFor="">Guide Fee</label>
                     </div>
                     {/* <div className="add_guide_fee" id="addAnotherGuideFee"></div>
                               <div className="mt-1">
@@ -826,7 +915,7 @@ function TripSheet() {
                         }}
                         onBlur={calcTotalExpense}
                       />
-                      <label for="">Other Charge</label>
+                      <label htmlFor="">Other Charge</label>
                     </div>
                     {/* <div className="add_other_charge" id="addAnotherOtherCharge"></div>
                               <div className="mt-1">
@@ -862,7 +951,7 @@ function TripSheet() {
                         placeholder="Total Trip Expense"
                         readOnly
                       />
-                      <label for="">
+                      <label htmlFor="">
                         <b>Total Charge</b>
                       </label>
                     </div>
@@ -880,7 +969,7 @@ function TripSheet() {
                         }}
                         onBlur={rewriteBalance}
                       />
-                      <label for="">Advance</label>
+                      <label htmlFor="">Advance</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -892,7 +981,7 @@ function TripSheet() {
                         placeholder="Balance"
                         readOnly
                       />
-                      <label for="">Balance</label>
+                      <label htmlFor="">Balance</label>
                     </div>
 
                     <div className="form-button d-flex justify-content-center mt-3">
@@ -925,7 +1014,7 @@ function TripSheet() {
                           placeholder="{{tripNo}}"
                           readOnly
                         />
-                        <label for="">Trip No.*</label>
+                        <label htmlFor="">Trip No.*</label>
                       </div>
                       <div className="col-sm-6">
                         <input
@@ -937,7 +1026,7 @@ function TripSheet() {
                           value="{% now 'Y-m-d' %}"
                           required
                         />
-                        <label for="">Date*</label>
+                        <label htmlFor="">Date*</label>
                       </div>
                     </div>
 
@@ -949,7 +1038,7 @@ function TripSheet() {
                         placeholder="Vehicle Name"
                         required
                       />
-                      <label for="">Vehicle Name*</label>
+                      <label htmlFor="">Vehicle Name*</label>
                     </div>
                     <div className="col-md-12">
                       <input
@@ -961,7 +1050,7 @@ function TripSheet() {
                         required
                       />
                       <div className="text-danger" id="hr_vehicleNumErr"></div>
-                      <label for="">Vehicle No.*</label>
+                      <label htmlFor="">Vehicle No.*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -976,7 +1065,7 @@ function TripSheet() {
                         onchange="calcTotalExpense()"
                         required
                       />
-                      <label for="">Fixed Charge*</label>
+                      <label htmlFor="">Fixed Charge*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -991,7 +1080,7 @@ function TripSheet() {
                         onchange="calcTotalExpense()"
                         required
                       />
-                      <label for="">Max. Hours*</label>
+                      <label htmlFor="">Max. Hours*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -1006,7 +1095,7 @@ function TripSheet() {
                         onchange="calcTotalExpense()"
                         required
                       />
-                      <label for="">Extra Hour Charge*</label>
+                      <label htmlFor="">Extra Hour Charge*</label>
                     </div>
 
                     <hr className="text-white" />
@@ -1024,7 +1113,7 @@ function TripSheet() {
                             id="startTime1"
                             required
                           />
-                          <label for="">Start</label>
+                          <label htmlFor="">Start</label>
                         </div>
                         <div className="col-12">
                           <input
@@ -1035,7 +1124,7 @@ function TripSheet() {
                             id="endTime1"
                             required
                           />
-                          <label for="">End</label>
+                          <label htmlFor="">End</label>
                         </div>
                         <div className="col-12">
                           <input
@@ -1045,7 +1134,7 @@ function TripSheet() {
                             id="hours1"
                             readOnly
                           />
-                          <label for="">Hours</label>
+                          <label htmlFor="">Hours</label>
                         </div>
                       </div>
                     </div>
@@ -1071,7 +1160,7 @@ function TripSheet() {
                         placeholder="Diver Name"
                         required
                       />
-                      <label for="">Driver Name*</label>
+                      <label htmlFor="">Driver Name*</label>
                     </div>
 
                     <div className="col-md-12">
@@ -1082,7 +1171,7 @@ function TripSheet() {
                         placeholder="Guest Name"
                         required
                       />
-                      <label for="">Guest Name*</label>
+                      <label htmlFor="">Guest Name*</label>
                     </div>
 
                     <div className="row gx-2">
@@ -1095,7 +1184,7 @@ function TripSheet() {
                           placeholder="0.0"
                           required
                         />
-                        <label for="">Starting Kilometer</label>
+                        <label htmlFor="">Starting Kilometer</label>
                       </div>
                       <div className="col-12 col-sm-6">
                         <input
@@ -1105,7 +1194,7 @@ function TripSheet() {
                           id="hr_endKilometer"
                           placeholder="0.0"
                         />
-                        <label for="">Ending Kilometer</label>
+                        <label htmlFor="">Ending Kilometer</label>
                       </div>
                     </div>
 
@@ -1118,7 +1207,7 @@ function TripSheet() {
                           placeholder="Starting Place"
                           required
                         />
-                        <label for="">Starting Place*</label>
+                        <label htmlFor="">Starting Place*</label>
                       </div>
                       <div className="col-sm-6">
                         <input
@@ -1127,7 +1216,7 @@ function TripSheet() {
                           name="starting_time"
                           required
                         />
-                        <label for="">Time</label>
+                        <label htmlFor="">Time</label>
                       </div>
                     </div>
 
@@ -1139,7 +1228,7 @@ function TripSheet() {
                           name="destination"
                           placeholder="Destination"
                         />
-                        <label for="">Destination</label>
+                        <label htmlFor="">Destination</label>
                       </div>
                       <div className="col-sm-6">
                         <input
@@ -1147,7 +1236,7 @@ function TripSheet() {
                           type="time"
                           name="time_of_arrival"
                         />
-                        <label for="">Time of Arrival</label>
+                        <label htmlFor="">Time of Arrival</label>
                       </div>
                     </div>
                     <div className="col-12">
@@ -1159,7 +1248,7 @@ function TripSheet() {
                         id="hr_endDate"
                         value="{% now 'Y-m-d' %}"
                       />
-                      <label for="">Trip End Date</label>
+                      <label htmlFor="">Trip End Date</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -1171,7 +1260,7 @@ function TripSheet() {
                         step="1"
                         onchange="calcTotalHourExpense()"
                       />
-                      <label for="">Trip Days</label>
+                      <label htmlFor="">Trip Days</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -1183,7 +1272,7 @@ function TripSheet() {
                         placeholder="Kilometers"
                         readOnly
                       />
-                      <label for="">Kilometers</label>
+                      <label htmlFor="">Kilometers</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -1194,7 +1283,7 @@ function TripSheet() {
                         placeholder="Permit"
                         onchange="calcTotalHourExpense()"
                       />
-                      <label for="">Permit</label>
+                      <label htmlFor="">Permit</label>
                     </div>
                     <div className="col-12">
                       <input
@@ -1204,7 +1293,7 @@ function TripSheet() {
                         placeholder="Toll"
                         onchange="calcTotalHourExpense()"
                       />
-                      <label for="">Toll</label>
+                      <label htmlFor="">Toll</label>
                     </div>
                     {/* <div className="add_toll" id="hr_addAnotherToll"></div>
                               <div className="mt-1">
@@ -1218,7 +1307,7 @@ function TripSheet() {
                         placeholder="Parking"
                         onchange="calcTotalHourExpense()"
                       />
-                      <label for="">Parking</label>
+                      <label htmlFor="">Parking</label>
                     </div>
                     {/* <div className="add_parking" id="hr_addAnotherParking"></div>
                               <div className="mt-1">
@@ -1232,7 +1321,7 @@ function TripSheet() {
                         placeholder="Entrance"
                         onchange="calcTotalHourExpense()"
                       />
-                      <label for="">Entrance</label>
+                      <label htmlFor="">Entrance</label>
                     </div>
 
                     <div className="col-12">
@@ -1250,7 +1339,7 @@ function TripSheet() {
                         placeholder="Guide Fee"
                         onchange="calcTotalHourExpense()"
                       />
-                      <label for="">Guide Fee</label>
+                      <label htmlFor="">Guide Fee</label>
                     </div>
                     {/* <div className="add_guide_fee" id="hr_addAnotherGuideFee"></div>
                               <div className="mt-1">
@@ -1272,7 +1361,7 @@ function TripSheet() {
                         placeholder="Other charge amount."
                         onchange="calcTotalHourExpense()"
                       />
-                      <label for="">Other Charge</label>
+                      <label htmlFor="">Other Charge</label>
                     </div>
                     {/* <div className="add_other_charge" id="hr_addAnotherOtherCharge"></div>
                               <div className="mt-1">
@@ -1308,7 +1397,7 @@ function TripSheet() {
                         placeholder="Total Trip Expense"
                         readOnly
                       />
-                      <label for="">
+                      <label htmlFor="">
                         <b>Total Charge</b>
                       </label>
                     </div>
@@ -1322,7 +1411,7 @@ function TripSheet() {
                         placeholder="Advance"
                         onchange="hr_rewriteBalance()"
                       />
-                      <label for="">Advance</label>
+                      <label htmlFor="">Advance</label>
                     </div>
 
                     <div className="col-12">
@@ -1335,7 +1424,7 @@ function TripSheet() {
                         placeholder="Balance"
                         readOnly
                       />
-                      <label for="">Balance</label>
+                      <label htmlFor="">Balance</label>
                     </div>
 
                     <div className="form-button d-flex justify-content-center mt-3">

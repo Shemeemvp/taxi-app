@@ -106,6 +106,14 @@ def end_current_trip(request):
         request.data['user'] = usr.id if usr else None
         request.data['driver'] = drv.id if drv else None
 
+        
+        trp_no = request.data['trip_no']
+
+        while TSC_Form.objects.filter(driver = drv, trip_no__iexact = trp_no).exists():
+            trp_no = getNextTripNumber(trp_no)
+
+        request.data['trip_no'] = trp_no
+
         serializer = TCS_FormSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -135,7 +143,7 @@ def allTrips(request, id):
     except:
         return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)
 
-    trips = TSC_Form.objects.filter(driver=drv)
+    trips = TSC_Form.objects.filter(driver=drv).order_by('-id')
     serializer = AllTripsSerializer(trips, many=True)
     
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -145,3 +153,66 @@ def feedbacks(request):
     fb = Customer_Feedbacks.objects.all()
     serializer = FeedbackSerializer(fb, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def viewTrip(request, id):
+    try:
+        trp = get_object_or_404(TSC_Form, id = id)
+    except:
+        return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TCS_FormSerializer(trp)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['DELETE'])
+def deleteTrip(request, id):
+    try:
+        trip = TSC_Form.objects.get(id = id)
+        trip.delete()
+        return Response({"status":True}, status=status.HTTP_200_OK)
+    except:
+        return Response({"status":False}, status=status.HTTP_400_BAD_REQUEST)
+    
+def getNextTripNumber(trp):
+    trip_no = trp
+    numbers = []
+    stri = []
+    for word in trip_no:
+        if word.isdigit():
+            numbers.append(word)
+        else:
+            stri.append(word)
+    
+    num=''
+    for i in numbers:
+        num +=i
+    
+    st = ''
+    for j in stri:
+        st = st+j
+
+    trp_num = int(num)+1
+
+    if num[0] == '0':
+        if trp_num <10:
+            nxtTRIP = st+'0'+ str(trp_num)
+        else:
+            nxtTRIP = st+ str(trp_num)
+    else:
+        nxtTRIP = st+ str(trp_num)
+
+    return nxtTRIP
+
+@api_view(['GET'])
+def getLastTrip(request, id):
+    try:
+        user = get_object_or_404(User, id = id)
+    except:
+        return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)
+    
+    trip = TSC_Form.objects.filter(user = user).last()
+    if trip:
+        serializer = TCS_FormSerializer(trip)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)

@@ -19,10 +19,10 @@ function App() {
             <Route path="/sign_up" element={<Register />}></Route>
             <Route path="/forgot_password" element={<ForgotPassword />}></Route>
             <Route path="/trip_sheet" element={<TripSheet />}></Route>
-            <Route path="/previous_trip" element={<PreviousTrip />}></Route>
+            <Route path="/previous_trip/" element={<PreviousTrip />}></Route>
             <Route path="/all_trips" element={<AllTrips />}></Route>
             <Route path="/feedbacks" element={<Feedbacks />}></Route>
-            <Route path="/view_tsc_data" element={<ViewTscData />}></Route>
+            <Route path="/view_tsc_data/:id/" element={<ViewTscData />}></Route>
           </Route>
         </Routes>
       </BrowserRouter>
