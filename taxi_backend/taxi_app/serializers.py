@@ -70,6 +70,11 @@ class TCS_FormSerializer(serializers.ModelSerializer):
         model = TSC_Form
         fields = '__all__'
 
+class TripRideHoursSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TripRideHours
+        fields = '__all__'
+
 class AllTripsSerializer(serializers.ModelSerializer):
     class Meta:
         model = TSC_Form

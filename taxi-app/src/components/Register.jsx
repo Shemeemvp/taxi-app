@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import config from "../functions/config";
 import axios from "axios";
 import Cookies from "js-cookie";
+import Swal from 'sweetalert2'
 
 function Register() {
   const navigate = useNavigate();
@@ -22,7 +23,6 @@ function Register() {
     mobile: "",
     password: "",
   });
-  const [responseData, setResponseData] = useState(null);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -44,15 +44,30 @@ function Register() {
           },
         }
       );
-      // setResponseData(response.data);
       Cookies.set("access", response.data.access);
       if (response.data) {
+        Toast.fire({
+          icon: "success",
+          title: "Registered successfully"
+        });
         navigate("/");
       }
     } catch (error) {
       console.log(error);
     }
   };
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
   return (
     <section className="vh-100 gradient-custom">
       <div className="container py-5 h-100">

@@ -76,14 +76,14 @@ function ViewTscData() {
 
   useEffect(() => {
     fetchTripData();
-  }, [id]);
+  }, []);
 
-  function getExtraKilometers(totKM, tripDays, mxKM) {
-    var totKM = parseFloat(totKM) || 0;
-    var tripDays = parseInt(tripDays) || 0;
-    var mxKM = parseFloat(mxKM) || 0;
+  function getExtraKilometers(totKM, trpDys, mxKM) {
+    var totalKM = parseFloat(totKM) || 0;
+    var tripDays = parseInt(trpDys) || 0;
+    var maxKM = parseFloat(mxKM) || 0;
 
-    var extKM = totKM - tripDays * mxKM;
+    var extKM = totalKM - tripDays * maxKM;
     if (extKM > 0) {
       setExtraKilometer(extKM.toFixed(2));
     }

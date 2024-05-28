@@ -94,7 +94,7 @@ def getTripNumber(request,id):
         return Response({'status':False})
     
 @api_view(['POST'])
-def end_current_trip(request):
+def endCurrentTrip(request):
     if request.method == 'POST':
         try:
             usr = User.objects.get(id = request.data['user_id'])
@@ -120,6 +120,54 @@ def end_current_trip(request):
 
             tripId = serializer.data['id']
             trip = TSC_Form.objects.get(id = tripId)
+            qr = qrcode.make(f"{settings.BASE_URL}/qr_details")
+
+            image_directory = os.path.join(settings.MEDIA_ROOT, "images")
+            if not os.path.exists(image_directory):
+                os.makedirs(image_directory)
+            image_path = os.path.join(settings.MEDIA_ROOT, "images", "trip" + str(trip.id) + ".png")
+            qr.save(image_path)
+            with open(image_path, "rb") as reopen:
+                djangofile = File(reopen)
+                trip.bill_qr = djangofile
+                trip.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def endHourBasedTrip(request):
+    if request.method == 'POST':
+        try:
+            usr = User.objects.get(id = request.data['user_id'])
+            drv = Driver.objects.get(user = usr)
+        except:
+            usr = None
+            drv = None
+
+        request.data['user'] = usr.id if usr else None
+        request.data['driver'] = drv.id if drv else None
+
+        
+        trp_no = request.data['trip_no']
+
+        while TSC_Form.objects.filter(driver = drv, trip_no__iexact = trp_no).exists():
+            trp_no = getNextTripNumber(trp_no)
+
+        request.data['trip_no'] = trp_no
+
+        serializer = TCS_FormSerializer(data=request.data)
+        if serializer.is_valid():
+
+            serializer.save()
+
+            tripId = serializer.data['id']
+            trip = TSC_Form.objects.get(id = tripId)
+            
+            rideHours = request.data['ride_hours']
+            for i in rideHours:
+                TripRideHours.objects.create(trip = trip, start_time = i.get('startTime'), end_time = i.get('endTime'), hours = i.get('hours'))
+            
             qr = qrcode.make(f"{settings.BASE_URL}/qr_details")
 
             image_directory = os.path.join(settings.MEDIA_ROOT, "images")
@@ -216,3 +264,43 @@ def getLastTrip(request, id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     else:
         return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def getRideHours(request, id):
+    try:
+        trip = get_object_or_404(TSC_Form, id = id)
+    except:
+        return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)
+    
+    hrs = TripRideHours.objects.filter(trip = trip)
+    if hrs:
+        serializer = TripRideHoursSerializer(hrs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    else:
+        return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['PUT'])
+def updateTrip(request, id):
+    form = get_object_or_404(TSC_Form, id=id)
+
+    serializer = TCS_FormSerializer(form, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT'])
+def updateHourBasedTrip(request, id):
+    trip = get_object_or_404(TSC_Form, id=id)
+
+    serializer = TCS_FormSerializer(trip, data=request.data)
+    rideHours = request.data['ride_hours']
+    if serializer.is_valid():
+        serializer.save()
+        
+        TripRideHours.objects.filter(trip = trip).delete()
+        for i in rideHours:
+            TripRideHours.objects.create(trip = trip, start_time = i.get('startTime'), end_time = i.get('endTime'), hours = i.get('hours'))
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

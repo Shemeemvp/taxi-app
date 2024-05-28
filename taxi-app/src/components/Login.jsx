@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import config from "../functions/config";
 import axios from "axios";
 import Cookies from "js-cookie";
+import Swal from "sweetalert2";
 
 function Login() {
   const passwordEle = useRef(null);
@@ -53,7 +54,11 @@ function Login() {
       }
     } catch (error) {
       if (error.response.data.non_field_errors != "") {
-        alert(error.response.data.non_field_errors);
+        // alert(error.response.data.non_field_errors);
+        Swal.fire({
+          icon: "error",
+          title: `${error.response.data.non_field_errors}`,
+        });
       }
       console.log("===ERROR===", error);
     }

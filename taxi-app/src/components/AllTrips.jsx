@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import axios from "axios";
 import config from "../functions/config";
+import Swal from "sweetalert2";
 
 function AllTrips() {
   const navigate = useNavigate();
@@ -34,17 +35,47 @@ function AllTrips() {
     fetchTrips();
   }, []);
 
-  function handleDeleteTrip(id) {
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    },
+  });
+  function handleDeleteTrip(id, number) {
     var tripID = id;
-    axios
-      .delete(`${config.base_url}/delete_trip/${tripID}/`)
-      .then((res) => {
-        console.log(res)
-        fetchTrips();
-      })
-      .catch((err) => {
-        console.log(err)
-      });
+    var tripNo = number;
+
+    Swal.fire({
+      title: `Delete Trip - ${tripNo}?`,
+      text: "You won't be able to revert this trip details.!",
+      icon: "warning",
+      showCancelButton: true,
+      cancelButtonColor: "#3085d6",
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Delete",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axios
+          .delete(`${config.base_url}/delete_trip/${tripID}/`)
+          .then((res) => {
+            console.log(res);
+
+            Toast.fire({
+              icon: "success",
+              title: "Trip Deleted successfully",
+            });
+            fetchTrips();
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
+    });
   }
   return (
     <>
@@ -129,7 +160,9 @@ function AllTrips() {
                           style={{ verticalAlign: "middle" }}
                         >
                           <a
-                            onClick={()=>{navigate(`/view_tsc_data/${trip.id}`)}}
+                            onClick={() => {
+                              navigate(`/view_tsc_data/${trip.id}`);
+                            }}
                             className="btn btn-secondary btn-sm w-100"
                           >
                             VIEW
@@ -137,7 +170,7 @@ function AllTrips() {
                           <br />
                           <a
                             onClick={() => {
-                              handleDeleteTrip(trip.id);
+                              handleDeleteTrip(trip.id, trip.trip_no);
                             }}
                             className="btn btn-secondary btn-sm w-100 mt-1"
                           >
