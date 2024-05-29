@@ -17,5 +17,8 @@ urlpatterns = [
     path('get_last_trip/<int:id>/', getLastTrip, name='get_last_trip'),
     path('get_ride_hours/<int:id>/', getRideHours, name='get_ride_hours'),
     path('delete_trip/<int:id>/', deleteTrip, name='delete_trip'),
+    path('update_password/', updatePassword, name='update_password'),
+    path('check_phone_number/', checkPhoneNumber, name='check_phone_number'),
+    path('check_username/', checkUserName, name='check_username'),
     path('feedbacks/', feedbacks, name='feedbacks'),
 ]

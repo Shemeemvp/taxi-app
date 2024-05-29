@@ -21,15 +21,20 @@ def home(request):
 class RegistrationView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = RegistrationSerializer(data=request.data)
-        if serializer.is_valid():
-            user_data = serializer.save()
-            if user_data:
-                user_json = json.dumps(user_data)
-                return Response(user_json, status=status.HTTP_201_CREATED)
+        if User.objects.filter(username = request.data['user_name']).exists():
+            return Response({'status':False, 'message':'Username already exists.!'}, status=status.HTTP_400_BAD_REQUEST)
+        elif Driver.objects.filter(mobile = request.data['mobile']).exists():
+            return Response({'status':False, 'message':'Mobile No. exists.!'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            if serializer.is_valid():
+                user_data = serializer.save()
+                if user_data:
+                    user_json = json.dumps(user_data)
+                    return Response(user_json, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            # return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
     def post(self, request):
@@ -96,6 +101,7 @@ def getTripNumber(request,id):
 @api_view(['POST'])
 def endCurrentTrip(request):
     if request.method == 'POST':
+        print('REQ===',request.data)
         try:
             usr = User.objects.get(id = request.data['user_id'])
             drv = Driver.objects.get(user = usr)
@@ -208,9 +214,21 @@ def viewTrip(request, id):
         trp = get_object_or_404(TSC_Form, id = id)
     except:
         return JsonResponse({'status': False}, status=status.HTTP_404_NOT_FOUND)
-
     serializer = TCS_FormSerializer(trp)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    extHr = 0
+    if serializer.data['trip_charge_type'] == 'hour':
+        hrs = TripRideHours.objects.filter(trip = trp)
+
+        for i in hrs:
+            hr = int(i.hours.split(':')[0])
+            mint = float(i.hours.split(':')[1])
+            minute = mint/60
+            if hr > i.trip.max_hour:
+                extHr += (hr - i.trip.max_hour)
+            if mint > 0:
+                extHr += (mint / 60)
+
+    return Response({'data':serializer.data, 'extraHours':"{:.2f}".format(extHr)}, status=status.HTTP_200_OK)
 
 @api_view(['DELETE'])
 def deleteTrip(request, id):
@@ -304,3 +322,35 @@ def updateHourBasedTrip(request, id):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def updatePassword(request):
+    if request.method == 'POST':
+        uName = request.data['username']
+
+        if not User.objects.filter(username = uName).exists():
+            return Response({'status':False, 'message':'Username not found.!'},status=status.HTTP_404_NOT_FOUND)
+        else:
+            user = User.objects.get(username = uName)
+            pas = request.data['password']
+            user.set_password(pas)
+            user.save()
+            return Response({'status':True, 'message':'Password Updated successfully'}, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def checkUserName(request):
+    if request.method == 'POST':
+        uname = request.data['userName']
+        if User.objects.filter(username = uname).exists():
+            return Response({'status':True, 'is_exists': True, 'message':'Username already Exists.!'})
+        else:
+            return Response({'status':True, 'is_exists': False, 'message':''})
+
+@api_view(['POST'])
+def checkPhoneNumber(request):
+    if request.method == 'POST':
+        phn = request.data['mobile']
+        if Driver.objects.filter(mobile__iexact = phn).exists():
+            return Response({'status':True, 'is_exists': True, 'message':'Mobile No. already Exists.!'})
+        else:
+            return Response({'status':True, 'is_exists': False, 'message':''})

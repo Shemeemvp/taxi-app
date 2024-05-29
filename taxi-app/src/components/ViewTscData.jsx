@@ -11,22 +11,27 @@ function ViewTscData() {
   const [tripData, setTripData] = useState({});
   const [extraKilometer, setExtraKilometer] = useState("");
 
-  var extraHr = null;
-
-  const formatFloat = (num) => (num || 0).toFixed(2);
+  const formatFloat = (num) => {
+    if(num != null){
+      return (num).toFixed(2);
+    }else{
+      return '0.0'
+    }
+  }
 
   const fetchTripData = () => {
     axios
       .get(`${config.base_url}/view_trip/${id}/`)
       .then((res) => {
-        const trpData = res.data;
-        console.log(trpData);
+        const trpData = res.data.data;
+        console.log('====TRIPDATA====',trpData);
         const relativeMediaPath = trpData.bill_qr.split("media\\")[1];
         const qrUrl = `${config.base_url}/media/${relativeMediaPath.replace(
           /\\/g,
           "/"
         )}`;
         const trip = {
+          tripID: trpData.id,
           tripNo: trpData.trip_no,
           qr: qrUrl,
           tripDate: trpData.trip_date,
@@ -63,6 +68,7 @@ function ViewTscData() {
           otherCharge: trpData.other_charges,
           totalTripCharge: trpData.total_trip_expense,
           balance: trpData.balance,
+          extraHr: res.data.extraHours
         };
         setTripData(trip);
         getExtraKilometers(
@@ -71,7 +77,9 @@ function ViewTscData() {
           trpData.max_kilometer
         );
       })
-      .catch((err) => {});
+      .catch((err) => {
+        console.log('===ERROR==',err)
+      });
   };
 
   useEffect(() => {
@@ -90,17 +98,20 @@ function ViewTscData() {
   }
 
   function convertToAM_PM(timeString) {
-    const [hours, minutes, seconds] = timeString.split(":").map(Number);
-
-    const period = hours >= 12 ? "PM" : "AM";
-
-    const hours12 = hours % 12 || 12;
-
-    const formattedTime = `${hours12.toString().padStart(2, "0")}:${minutes
-      .toString()
-      .padStart(2, "0")} ${period}`;
-
-    return formattedTime;
+    if(timeString){
+      const [hours, minutes, seconds] = timeString.split(":").map(Number);
+  
+      const period = hours >= 12 ? "PM" : "AM";
+  
+      const hours12 = hours % 12 || 12;
+  
+      const formattedTime = `${hours12.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")} ${period}`;
+  
+      return formattedTime;
+    }
+    return null;
   }
 
   function printSheet() {
@@ -147,10 +158,9 @@ function ViewTscData() {
             text-align: center;
         }
         .equal-length-item hr{
-          width: 60%;
+          width: 50%;
           border-bottom: 1px solid black;
           position: relative;
-          left: 20%;
         }
   
         .guide_places, .other_charges, .trip_split{
@@ -186,24 +196,46 @@ function ViewTscData() {
     document.getElementById("printTripSheet").style.display = "none";
   }
 
+  function loadImageToBase64(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      var reader = new FileReader();
+      reader.onloadend = function () {
+        callback(reader.result);
+      };
+      reader.readAsDataURL(xhr.response);
+    };
+    xhr.open("GET", url);
+    xhr.responseType = "blob";
+    xhr.send();
+  }
+
   function downloadPdf() {
     document.getElementById("printTripSheet").style.display = "block";
-    var tripNo = tripData.tripNo;
-    var element = document.getElementById("printTripSheet");
-    var opt = {
-      margin: 0,
-      filename: "TripSheet_" + tripNo + ".pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
-    };
-    html2pdf()
-      .set(opt)
-      .from(element)
-      .save()
-      .then(function () {
-        document.getElementById("printTripSheet").style.display = "none";
-      });
+    var qrCodeUrl =
+      `${config.base_url}/media/images/trip` + tripData.tripID + ".png";
+
+    loadImageToBase64(qrCodeUrl, function (base64QR) {
+      document.getElementById("printTripSheet").style.display = "block";
+      document.getElementById("qrCodeImage").src = base64QR;
+
+      var tripNo = tripData.tripNo;
+      var element = document.getElementById("printTripSheet");
+      var opt = {
+        margin: 0,
+        filename: "TripSheet_" + tripNo + ".pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+      };
+      html2pdf()
+        .set(opt)
+        .from(element)
+        .save()
+        .then(function () {
+          document.getElementById("printTripSheet").style.display = "none";
+        });
+    });
   }
   return (
     <>
@@ -257,6 +289,7 @@ function ViewTscData() {
                     <div className="col-2 d-flex justify-content-center align-items-center">
                       <div className="qr">
                         <img
+                          id="qrCodeImage"
                           src={tripData.qr}
                           style={{ width: "100px", maxWidth: "100%" }}
                           alt="code"
@@ -301,14 +334,14 @@ function ViewTscData() {
                       <div className="col-3">
                         <p>Guest Name</p>
                       </div>
-                      <div className="col-3">{tripData.guest}</div>
+                      <div className="col-3">{tripData.guestName}</div>
 
                       <div className="col-3">
                         <p>Advance</p>
                       </div>
                       <div className="col-3">
                         <span>&#8377; </span>
-                        {tripData.advance}
+                        {formatFloat(tripData.advance)}
                       </div>
                     </div>
                   </div>
@@ -325,7 +358,7 @@ function ViewTscData() {
                       <hr />
                     </div>
                     <div
-                      className="equal-length-item ml-2"
+                      className="equal-length-item"
                       style={{ textAlign: "center" }}
                     >
                       Time
@@ -417,10 +450,10 @@ function ViewTscData() {
                       </div>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.tripCharge}
+                        {formatFloat(tripData.tripCharge)}
                       </span>
                     </div>
-                    {tripData.tripChargeType !== "Hour" &&
+                    {tripData.tripChargeType !== "hour" &&
                       tripData.tripCharge !== 0 && (
                         <div className="trip_split w-100 mb-2">
                           <span className="w-100 ps-3 pe-2 d-flex justify-content-between">
@@ -463,8 +496,8 @@ function ViewTscData() {
                           </span>
                           <span className="w-100 ps-3 pe-2 d-flex justify-content-between">
                             <span>
-                              Extra Hour Charge(&#8377; {} extra charge per Hour
-                              for <span className="extraHR">{extraHr}</span> Hrs
+                              Extra Hour Charge(&#8377; {tripData.extraHourCharge} extra charge per Hour
+                              for <span className="extraHR">{tripData.extraHr}</span> Hrs
                               )
                             </span>
                             <span>
@@ -478,43 +511,43 @@ function ViewTscData() {
                       <span>Permit</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.permit}
+                        {formatFloat(tripData.permit)}
                       </span>
                     </div>
                     <div className="subtot-item d-flex justify-content-between">
                       <span>Entrance Fees</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.entrance}
+                        {formatFloat(tripData.entrance)}
                       </span>
                     </div>
                     <div className="subtot-item d-flex justify-content-between">
                       <span>Parking</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.parking}
+                        {formatFloat(tripData.parking)}
                       </span>
                     </div>
                     <div className="subtot-item d-flex justify-content-between">
                       <span>TOLL</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.toll}
+                        {formatFloat(tripData.toll)}
                       </span>
                     </div>
                     <div className="subtot-item d-flex justify-content-between">
                       <span>Guide Fees</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.guideFee}
+                        {formatFloat(tripData.guideFee)}
                       </span>
                     </div>
-                    {tripData.guideFee !== 0 && (
+                    {tripData.guideFee !== 0 && tripData.guideFee !== null && (
                       <div className="guide_places w-100">
                         {/* {% for i in guide_exp %} */}
                         <span className="w-100 ps-3 pe-2 d-flex justify-content-between">
                           <span>{tripData.guideFeePlace}</span>
-                          <span>&#8377; {tripData.guideFee}</span>
+                          <span>&#8377; {formatFloat(tripData.guideFee)}</span>
                         </span>
                         {/* {% endfor %} */}
                       </div>
@@ -523,15 +556,15 @@ function ViewTscData() {
                       <span>Other Charges</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.otherCharge}
+                        {formatFloat(tripData.otherCharge)}
                       </span>
                     </div>
-                    {tripData.otherCharge !== 0 && (
+                    {tripData.otherCharge !== 0 && tripData.otherCharge !== null && (
                       <div className="other_charges w-100">
                         {/* {% for i in other_charges %} */}
                         <span className="w-100 ps-3 pe-2 d-flex justify-content-between">
                           <span>{tripData.otherChargeDescription}</span>
-                          <span>&#8377; {tripData.otherCharge}</span>
+                          <span>&#8377; {formatFloat(tripData.otherCharge)}</span>
                         </span>
                         {/* {% endfor %} */}
                       </div>
@@ -764,10 +797,10 @@ function ViewTscData() {
                       </div>
                       <span className="d-flex">
                         <span>&#8377; </span>
-                        {tripData.tripCharge}
+                        {formatFloat(tripData.tripCharge)}
                       </span>
                     </div>
-                    {tripData.tripChargeType !== "Hour" &&
+                    {tripData.tripChargeType !== "hour" &&
                       tripData.tripCharge !== 0 && (
                         <div className="trip_split w-100 mb-2">
                           <span className="w-100 ps-3 pe-2 d-flex justify-content-between">
@@ -810,8 +843,8 @@ function ViewTscData() {
                           </span>
                           <span className="w-100 ps-3 pe-2 d-flex justify-content-between">
                             <span>
-                              Extra Hour Charge(&#8377; {} extra charge per Hour
-                              for <span className="extraHR">{extraHr}</span> Hrs
+                              Extra Hour Charge(&#8377; {tripData.extraHourCharge} extra charge per Hour
+                              for <span className="extraHR">{tripData.extraHr}</span> Hrs
                               )
                             </span>
                             <span>
@@ -825,28 +858,28 @@ function ViewTscData() {
                       <span>Permit</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.permit}
+                        {formatFloat(tripData.permit)}
                       </span>
                     </div>
                     <div className="subtot-item d-flex justify-content-between">
                       <span>Entrance Fees</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.entrance}
+                        {formatFloat(tripData.entrance)}
                       </span>
                     </div>
                     <div className="subtot-item d-flex justify-content-between">
                       <span>Parking</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.parking}
+                        {formatFloat(tripData.parking)}
                       </span>
                     </div>
                     <div className="subtot-item d-flex justify-content-between">
                       <span>TOLL</span>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.toll}
+                        {formatFloat(tripData.toll)}
                       </span>
                     </div>
                     <div className="subtot-item d-flex justify-content-between">
@@ -855,15 +888,15 @@ function ViewTscData() {
                       </div>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.guideFee}
+                        {formatFloat(tripData.guideFee)}
                       </span>
                     </div>
-                    {tripData.guideFee !== 0 && (
+                    {tripData.guideFee !== 0 && tripData.guideFee !== null && (
                       <div className="guide_places w-100">
                         {/* {% for i in guide_exp %} */}
                         <span className="w-100 ps-3 pe-2 d-flex justify-content-between">
                           <span>{tripData.guideFeePlace}</span>
-                          <span>&#8377; {tripData.guideFee}</span>
+                          <span>&#8377; {formatFloat(tripData.guideFee)}</span>
                         </span>
                         {/* {% endfor %} */}
                       </div>
@@ -874,15 +907,15 @@ function ViewTscData() {
                       </div>
                       <span>
                         <span>&#8377; </span>
-                        {tripData.otherCharge}
+                        {formatFloat(tripData.otherCharge)}
                       </span>
                     </div>
-                    {tripData.otherCharge !== 0 && (
+                    {tripData.otherCharge !== 0 && tripData.otherCharge !== null && (
                       <div className="other_charges w-100">
                         {/* {% for i in other_charges %} */}
                         <span className="w-100 ps-3 pe-2 d-flex justify-content-between">
                           <span>{tripData.otherChargeDescription}</span>
-                          <span>&#8377; {tripData.otherCharge}</span>
+                          <span>&#8377; {formatFloat(tripData.otherCharge)}</span>
                         </span>
                         {/* {% endfor %} */}
                       </div>

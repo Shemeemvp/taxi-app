@@ -9,7 +9,7 @@ import Swal from "sweetalert2";
 function Login() {
   const passwordEle = useRef(null);
   function togglePasswordVisibility() {
-    if (passwordEle.current.type == "text") {
+    if (passwordEle.current.type === "text") {
       passwordEle.current.type = "password";
     } else {
       passwordEle.current.type = "text";
@@ -22,7 +22,6 @@ function Login() {
     username: "",
     password: "",
   });
-  const [responseData, setResponseData] = useState(null);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -53,7 +52,7 @@ function Login() {
         navigate("/trip_sheet");
       }
     } catch (error) {
-      if (error.response.data.non_field_errors != "") {
+      if (error.response.data.non_field_errors !== "") {
         // alert(error.response.data.non_field_errors);
         Swal.fire({
           icon: "error",
@@ -97,7 +96,7 @@ function Login() {
                       />
                       <label
                         className="form-label text-left"
-                        for="typeUsernameX"
+                        htmlFor="typeUsernameX"
                       >
                         User Name
                       </label>
@@ -118,13 +117,13 @@ function Login() {
                         style={{ color: "#152733" }}
                         onClick={togglePasswordVisibility}
                       ></i>
-                      <label className="form-label" for="password">
+                      <label className="form-label" htmlFor="password">
                         Password
                       </label>
                     </div>
                     <p className="small mb-3 pb-lg-2 text-center">
-                      <Link to={"/forgot_password"}>
-                        <a className="text-white-50">Forgot password?</a>
+                      <Link to={"/forgot_password"} className="text-white-50">
+                        Forgot password?
                       </Link>
                     </p>
                     <div className="d-flex justify-content-center">
@@ -140,9 +139,9 @@ function Login() {
 
                 <div>
                   <p className="mb-0 text-center">
-                    Don't have an account?{" "}
-                    <Link to="/sign_up">
-                      <a className="text-white-50 fw-bold">Sign Up</a>
+                    Don't have an account?
+                    <Link to="/sign_up" className="text-white-50 fw-bold">
+                      Sign Up
                     </Link>
                   </p>
                 </div>

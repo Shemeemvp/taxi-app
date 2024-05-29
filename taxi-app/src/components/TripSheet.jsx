@@ -334,6 +334,14 @@ function TripSheet() {
     },
   });
 
+  function checkEmpty(value){
+    if(value == ""){
+      return null
+    }else{
+      return value
+    }
+  }
+
   const handleKilometerSubmit = async (e) => {
     e.preventDefault();
     const ID = Cookies.get("ID");
@@ -353,22 +361,22 @@ function TripSheet() {
       max_kilometer: maxRange,
       extra_charge: extraKMCharge,
       starting_km: startKM,
-      ending_km: endKM,
+      ending_km: checkEmpty(endKM),
       trip_end_date: tripEndDate,
       starting_place: startPlace,
       starting_time: startTime,
-      destination: destination,
-      time_of_arrival: arrivalTime,
+      destination: checkEmpty(destination),
+      time_of_arrival: checkEmpty(arrivalTime),
       kilometers: parseFloat(totalKiloMeter || 0),
-      permit: parseFloat(permit || 0),
-      toll: parseFloat(toll || 0),
-      parking: parseFloat(parking || 0),
-      entrance: parseFloat(entrance || 0),
-      guide_fee: parseFloat(guideFee || 0),
+      permit: checkEmpty(permit),
+      toll: checkEmpty(toll),
+      parking: checkEmpty(parking),
+      entrance: checkEmpty(entrance),
+      guide_fee: checkEmpty(guideFee),
       guide_fee_place: guidePlace,
       other_charge_description: otherCharge,
-      other_charges: parseFloat(otherChargeAmount || 0),
-      advance: parseFloat(advance || 0),
+      other_charges: checkEmpty(otherChargeAmount),
+      advance: checkEmpty(advance),
       trip_fixed_charge: parseFloat(tripFixedCharge || 0),
       trip_extra_charge: parseFloat(tripExtraCharge || 0),
       trip_charge: parseFloat(tripCharge || 0),
@@ -624,7 +632,7 @@ function TripSheet() {
         if(extraHr > 0){
           extraCharge += extraHr * exCharge
         }
-      }    
+      }
     })
 
     totTripCharge = tripFxCharge + extraCharge
@@ -693,22 +701,22 @@ function TripSheet() {
       max_kilometer: null,
       extra_charge: null,
       starting_km: startKM,
-      ending_km: endKM,
+      ending_km: checkEmpty(endKM),
       trip_end_date: tripEndDate,
       starting_place: startPlace,
       starting_time: startTime,
-      destination: destination,
-      time_of_arrival: arrivalTime,
+      destination: checkEmpty(destination),
+      time_of_arrival: checkEmpty(arrivalTime),
       kilometers: parseFloat(totalKiloMeter || 0),
-      permit: parseFloat(permit || 0),
-      toll: parseFloat(toll || 0),
-      parking: parseFloat(parking || 0),
-      entrance: parseFloat(entrance || 0),
-      guide_fee: parseFloat(guideFee || 0),
+      permit: checkEmpty(permit),
+      toll: checkEmpty(toll),
+      parking: checkEmpty(parking),
+      entrance: checkEmpty(entrance),
+      guide_fee: checkEmpty(guideFee),
       guide_fee_place: guidePlace,
       other_charge_description: otherCharge,
-      other_charges: parseFloat(otherChargeAmount || 0),
-      advance: parseFloat(advance || 0),
+      other_charges: checkEmpty(otherChargeAmount),
+      advance: checkEmpty(advance),
       trip_fixed_charge: parseFloat(tripFixedCharge || 0),
       trip_extra_charge: parseFloat(tripExtraCharge || 0),
       trip_charge: parseFloat(tripCharge || 0),
@@ -776,7 +784,7 @@ function TripSheet() {
                     <span className="text-white ps-1">Hourly Based</span>
                   </div>
                 </div>
-                <div id="km_based" style={{ display: "block;" }}>
+                <div id="km_based" style={{ display: "block" }}>
                   <form
                     action="#"
                     method="post"
@@ -1087,7 +1095,7 @@ function TripSheet() {
                     </div>
                     {/* <div className="add_toll" id="addAnotherToll"></div>
                               <div className="mt-1">
-                                <span className="text-white" style={{cursor: "pointer;"}} id="addExpense" onclick="addNewToll()"><i className="fa fa-plus"></i> Toll</span>
+                                <span className="text-white" style={{cursor: "pointer"}} id="addExpense" onclick="addNewToll()"><i className="fa fa-plus"></i> Toll</span>
                               </div> */}
                     <div className="col-12">
                       <input
@@ -1105,7 +1113,7 @@ function TripSheet() {
                     </div>
                     {/* <div className="add_parking" id="addAnotherParking"></div>
                               <div className="mt-1">
-                                <span className="text-white" style={{cursor: "pointer;"}} id="addExpense" onclick="addNewParking()"><i className="fa fa-plus"></i> Parking</span>
+                                <span className="text-white" style={{cursor: "pointer"}} id="addExpense" onclick="addNewParking()"><i className="fa fa-plus"></i> Parking</span>
                               </div> */}
                     <div className="col-12">
                       <input
@@ -1149,7 +1157,7 @@ function TripSheet() {
                     </div>
                     {/* <div className="add_guide_fee" id="addAnotherGuideFee"></div>
                               <div className="mt-1">
-                                <span className="text-white" style={{cursor: "pointer;"}} id="addExpense" onclick="addNewGuideFee()"><i className="fa fa-plus"></i> Guide Fee</span>
+                                <span className="text-white" style={{cursor: "pointer"}} id="addExpense" onclick="addNewGuideFee()"><i className="fa fa-plus"></i> Guide Fee</span>
                               </div> */}
 
                     <div className="col-12">
@@ -1179,7 +1187,7 @@ function TripSheet() {
                     </div>
                     {/* <div className="add_other_charge" id="addAnotherOtherCharge"></div>
                               <div className="mt-1">
-                                <span className="text-white" style={{cursor: "pointer;"}} id="addExpense" onclick="addNewOtherCharge()"><i className="fa fa-plus"></i> Other Charge</span>
+                                <span className="text-white" style={{cursor: "pointer"}} id="addExpense" onclick="addNewOtherCharge()"><i className="fa fa-plus"></i> Other Charge</span>
                               </div> */}
 
                     <hr className="text-white" />
@@ -1650,7 +1658,7 @@ function TripSheet() {
                     </div>
                     {/* <div className="add_toll" id="hr_addAnotherToll"></div>
                               <div className="mt-1">
-                                <span className="text-white" style={{cursor: "pointer;"}} id="hr_addExpense" onclick="hr_addNewToll()"><i className="fa fa-plus"></i> Toll</span>
+                                <span className="text-white" style={{cursor: "pointer"}} id="hr_addExpense" onclick="hr_addNewToll()"><i className="fa fa-plus"></i> Toll</span>
                               </div> */}
                     <div className="col-12">
                       <input
@@ -1668,7 +1676,7 @@ function TripSheet() {
                     </div>
                     {/* <div className="add_parking" id="hr_addAnotherParking"></div>
                               <div className="mt-1">
-                                <span className="text-white" style={{cursor: "pointer;"}} id="hr_addExpense" onclick="hr_addNewParking()"><i className="fa fa-plus"></i> Parking</span>
+                                <span className="text-white" style={{cursor: "pointer"}} id="hr_addExpense" onclick="hr_addNewParking()"><i className="fa fa-plus"></i> Parking</span>
                               </div> */}
                     <div className="col-12">
                       <input
@@ -1712,7 +1720,7 @@ function TripSheet() {
                     </div>
                     {/* <div className="add_guide_fee" id="hr_addAnotherGuideFee"></div>
                               <div className="mt-1">
-                                <span className="text-white" style={{cursor: "pointer;"}} id="hr_addExpense" onclick="hr_addNewGuideFee()"><i className="fa fa-plus"></i> Guide Fee</span>
+                                <span className="text-white" style={{cursor: "pointer"}} id="hr_addExpense" onclick="hr_addNewGuideFee()"><i className="fa fa-plus"></i> Guide Fee</span>
                               </div> */}
 
                     <div className="col-12">
@@ -1742,7 +1750,7 @@ function TripSheet() {
                     </div>
                     {/* <div className="add_other_charge" id="hr_addAnotherOtherCharge"></div>
                               <div className="mt-1">
-                                <span className="text-white" style={{cursor: "pointer;"}} id="hr_addExpense" onclick="hr_addNewOtherCharge()"><i className="fa fa-plus"></i> Other Charge</span>
+                                <span className="text-white" style={{cursor: "pointer"}} id="hr_addExpense" onclick="hr_addNewOtherCharge()"><i className="fa fa-plus"></i> Other Charge</span>
                               </div> */}
 
                     <hr className="text-white" />

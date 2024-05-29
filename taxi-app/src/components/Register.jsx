@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import config from "../functions/config";
 import axios from "axios";
 import Cookies from "js-cookie";
-import Swal from 'sweetalert2'
+import Swal from "sweetalert2";
 
 function Register() {
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ function Register() {
   }
 
   const [formData, setFormData] = useState({
-    full_name:"",
+    full_name: "",
     user_name: "",
     mobile: "",
     password: "",
@@ -33,27 +33,35 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    try {
-      const response = await axios.post(
-        `${config.base_url}/register_user/`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
+    let valid = validateForm();
+    if (valid) {
+      try {
+        const response = await axios.post(
+          `${config.base_url}/register_user/`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        Cookies.set("access", response.data.access);
+        if (response.data) {
+          Toast.fire({
+            icon: "success",
+            title: "Registered successfully",
+          });
+          navigate("/");
         }
-      );
-      Cookies.set("access", response.data.access);
-      if (response.data) {
-        Toast.fire({
-          icon: "success",
-          title: "Registered successfully"
-        });
-        navigate("/");
+      } catch (error) {
+        console.log(error);
+        if(!error.response.data.status){
+          Swal.fire({
+            icon: "error",
+            title: `${error.response.data.message}`,
+          });
+        }
       }
-    } catch (error) {
-      console.log(error);
     }
   };
 
@@ -66,8 +74,93 @@ function Register() {
     didOpen: (toast) => {
       toast.onmouseenter = Swal.stopTimer;
       toast.onmouseleave = Swal.resumeTimer;
-    }
+    },
   });
+
+  function checkUserPhone(phone) {
+    document.getElementById("warnphone").textContent = "";
+    var phoneNo = phone;
+    if (phoneNo != "") {
+      let data = {
+        mobile:phone
+      }
+      axios.post(`${config.base_url}/check_phone_number/`,data).then((res)=>{
+        console.log('RESPONSE==',res)
+        if (res.data.is_exists) {
+          alert(res.data.message);
+          document.getElementById("warnphone").textContent = "Phone Number exists.";
+        } else {
+          document.getElementById("warnphone").textContent = "";
+        }
+      }).catch((err)=>{
+        console.log('ERROR==',err)
+      })
+    }
+  }
+
+  function checkUsername(username) {
+    document.getElementById("userNameErr").textContent = "";
+    var usr = username;
+    if (usr != "") {
+      let data = {
+        userName:username
+      }
+      axios.post(`${config.base_url}/check_username/`,data).then((res)=>{
+        console.log('RESPONSE==',res)
+        if (res.data.is_exists) {
+          alert(res.data.message);
+          document.getElementById("userNameErr").textContent = "Username exists.";
+        } else {
+          document.getElementById("userNameErr").textContent = "";
+        }
+      }).catch((err)=>{
+        console.log('ERROR==',err)
+      })
+    }
+  }
+
+  function handlePhoneNumber(element) {
+    var phoneinput = element.value;
+    var phoneregexp = /^\d{10}$/;
+
+    if (phoneinput.match(phoneregexp)) {
+      document.getElementById("warnphone").innerHTML = "";
+      checkUserPhone(phoneinput);
+    } else {
+      if (phoneinput.length > 10) {
+        alert("Number should be 10 digit.");
+        element.value = phoneinput.substring(0, 10);
+        return;
+      }
+      document.getElementById("warnphone").innerHTML =
+        "Please provide a valid Phone Number";
+      alert("Please provide a valid Phone Number");
+    }
+  }
+
+  function handleUsername() {
+    var userNameInput = document.getElementById("userName");
+    var userName = userNameInput.value.trim();
+    if (userName !== "") {
+      checkUsername(userName);
+    }
+  }
+
+  function validateForm() {
+    var name = document.getElementById("fullName").value.trim();
+    var Mob = document.getElementById("mobile").value.trim();
+
+    if (name === "") {
+      alert("Please enter a valid name.!");
+      return false;
+    }
+
+    if (Mob.length !== 10) {
+      alert("Mobile Number should be 10 digits.!");
+      return false;
+    }
+    return true;
+  }
   return (
     <section className="vh-100 gradient-custom">
       <div className="container py-5 h-100">
@@ -98,7 +191,7 @@ function Register() {
                         onChange={handleInputChange}
                         value={formData.full_name}
                         required
-                      />
+                        />
                       <label className="form-label text-left" for="fullName">
                         Full Name
                       </label>
@@ -111,6 +204,7 @@ function Register() {
                         name="user_name"
                         onChange={handleInputChange}
                         value={formData.user_name}
+                        onBlur={handleUsername}
                         className="form-control form-control-lg"
                         required
                       />
@@ -127,6 +221,7 @@ function Register() {
                         name="mobile"
                         onChange={handleInputChange}
                         value={formData.mobile}
+                        onBlur={(e)=>{handlePhoneNumber(e.target)}}
                         className="form-control form-control-lg"
                         required
                       />

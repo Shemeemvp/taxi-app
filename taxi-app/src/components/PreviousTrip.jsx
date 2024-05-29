@@ -377,6 +377,14 @@ function PreviousTrip() {
     setBalance(bal);
   }
 
+  function checkEmpty(value){
+    if(value == ""){
+      return null
+    }else{
+      return value
+    }
+  }
+
   const handleKilometerUpdate = async (e) => {
     e.preventDefault();
     const data = {
@@ -395,22 +403,22 @@ function PreviousTrip() {
       max_kilometer: maxRange,
       extra_charge: extraKMCharge,
       starting_km: startKM,
-      ending_km: endKM,
+      ending_km: checkEmpty(endKM),
       trip_end_date: tripEndDate,
       starting_place: startPlace,
       starting_time: startTime,
-      destination: destination,
-      time_of_arrival: arrivalTime,
+      destination: checkEmpty(destination),
+      time_of_arrival: checkEmpty(arrivalTime),
       kilometers: parseFloat(totalKiloMeter || 0),
-      permit: parseFloat(permit || 0),
-      toll: parseFloat(toll || 0),
-      parking: parseFloat(parking || 0),
-      entrance: parseFloat(entrance || 0),
-      guide_fee: parseFloat(guideFee || 0),
+      permit: checkEmpty(permit),
+      toll: checkEmpty(toll),
+      parking: checkEmpty(parking),
+      entrance: checkEmpty(entrance),
+      guide_fee: checkEmpty(guideFee),
       guide_fee_place: guidePlace,
       other_charge_description: otherCharge,
-      other_charges: parseFloat(otherChargeAmount || 0),
-      advance: parseFloat(advance || 0),
+      other_charges: checkEmpty(otherChargeAmount),
+      advance: checkEmpty(advance),
       trip_fixed_charge: parseFloat(tripFixedCharge || 0),
       trip_extra_charge: parseFloat(tripExtraCharge || 0),
       trip_charge: parseFloat(tripCharge || 0),
@@ -442,7 +450,7 @@ function PreviousTrip() {
     toast: true,
     position: "top-end",
     showConfirmButton: false,
-    timer: 3000,
+    timer: 2000,
     timerProgressBar: true,
     didOpen: (toast) => {
       toast.onmouseenter = Swal.stopTimer;
@@ -761,22 +769,22 @@ function PreviousTrip() {
       max_kilometer: null,
       extra_charge: null,
       starting_km: startKM,
-      ending_km: endKM,
+      ending_km: checkEmpty(endKM),
       trip_end_date: tripEndDate,
       starting_place: startPlace,
       starting_time: startTime,
-      destination: destination,
-      time_of_arrival: arrivalTime,
+      destination: checkEmpty(destination),
+      time_of_arrival: checkEmpty(arrivalTime),
       kilometers: parseFloat(totalKiloMeter || 0),
-      permit: parseFloat(permit || 0),
-      toll: parseFloat(toll || 0),
-      parking: parseFloat(parking || 0),
-      entrance: parseFloat(entrance || 0),
-      guide_fee: parseFloat(guideFee || 0),
+      permit: checkEmpty(permit),
+      toll: checkEmpty(toll),
+      parking: checkEmpty(parking),
+      entrance: checkEmpty(entrance),
+      guide_fee: checkEmpty(guideFee),
       guide_fee_place: guidePlace,
       other_charge_description: otherCharge,
-      other_charges: parseFloat(otherChargeAmount || 0),
-      advance: parseFloat(advance || 0),
+      other_charges: checkEmpty(otherChargeAmount),
+      advance: checkEmpty(advance),
       trip_fixed_charge: parseFloat(tripFixedCharge || 0),
       trip_extra_charge: parseFloat(tripExtraCharge || 0),
       trip_charge: parseFloat(tripCharge || 0),
